@@ -13,6 +13,11 @@ namespace jaytwo.HttpClient
 {
     public static class HttpClientExtensions
     {
+        public static HttpClient WithBaseUri(this HttpClient httpClient, string baseUri)
+        {
+            return httpClient.WithBaseUri(new Uri(baseUri, UriKind.Absolute));
+        }
+
         public static HttpClient WithBaseUri(this HttpClient httpClient, Uri baseUri)
         {
             httpClient.BaseUri = baseUri;

@@ -25,9 +25,9 @@ namespace jaytwo.HttpClient
             return httpRequest;
         }
 
-        public static HttpRequest WithUri(this HttpRequest httpRequest, string uri)
+        public static HttpRequest WithUri(this HttpRequest httpRequest, string pathOrUri)
         {
-            return WithUri(httpRequest, new Uri(uri));
+            return httpRequest.WithUri(new Uri(pathOrUri, UriKind.RelativeOrAbsolute));
         }
 
         public static HttpRequest WithPath(this HttpRequest httpRequest, string path)

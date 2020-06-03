@@ -9,6 +9,35 @@ namespace jaytwo.HttpClient
 {
     public class HttpRequest
     {
+        public HttpRequest()
+        {
+        }
+
+        public HttpRequest(string pathOrUri)
+        {
+            this.WithUri(pathOrUri);
+        }
+
+        public HttpRequest(Uri uri)
+        {
+            this.WithUri(uri);
+        }
+
+        public HttpRequest(HttpMethod method)
+        {
+            this.WithMethod(method);
+        }
+
+        public HttpRequest(HttpMethod method, string uri)
+        {
+            this.WithMethod(method).WithUri(uri);
+        }
+
+        public HttpRequest(HttpMethod method, Uri uri)
+        {
+            this.WithMethod(method).WithUri(uri);
+        }
+
         public IAuthenticationProvider AuthenticationProvider { get; set; }
 
         public Uri Uri { get; set; }

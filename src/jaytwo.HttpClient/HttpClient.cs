@@ -14,14 +14,18 @@ namespace jaytwo.HttpClient
     {
         private static System.Net.Http.HttpClient _systemHttpClient = new System.Net.Http.HttpClient();
 
-        public HttpClient(string baseUri)
-            : this(new Uri(baseUri))
+        public HttpClient()
         {
+        }
+
+        public HttpClient(string baseUri)
+        {
+            this.WithBaseUri(baseUri);
         }
 
         public HttpClient(Uri baseUri)
         {
-            BaseUri = baseUri;
+            this.WithBaseUri(baseUri);
         }
 
         public static TimeSpan DefaultTimeout { get; } = TimeSpan.FromSeconds(30);

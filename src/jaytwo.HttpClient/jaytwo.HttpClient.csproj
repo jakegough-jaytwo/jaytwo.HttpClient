@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.2-beta-20200603083714" />
     <PackageReference Include="jaytwo.FluentUri" Version="0.1.0" />
     <PackageReference Include="jaytwo.MimeHelper" Version="0.1.1-beta-20200603045653" />
     <PackageReference Include="Polly" Version="7.0.1" />

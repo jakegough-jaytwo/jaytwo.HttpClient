@@ -14,7 +14,7 @@ namespace jaytwo.HttpClient
         {
             if ((int)httpResponse.StatusCode < 200 || (int)httpResponse.StatusCode >= 300)
             {
-                throw new HttpRequestException($"Unsuccessful status code: {httpResponse.StatusCode}");
+                throw new HttpRequestException($"Unsuccessful status code: {(int)httpResponse.StatusCode} ({httpResponse.StatusCode})");
             }
 
             return httpResponse;

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using jaytwo.FluentUri;
 using jaytwo.MimeHelper;
+using jaytwo.UrlHelper;
 using Newtonsoft.Json;
 
 namespace jaytwo.HttpClient
@@ -30,66 +31,111 @@ namespace jaytwo.HttpClient
             return httpRequest.WithUri(new Uri(pathOrUri, UriKind.RelativeOrAbsolute));
         }
 
+        public static HttpRequest WithUri(this HttpRequest httpRequest, string pathFormat, params string[] formatArgs)
+        {
+            return httpRequest.WithUri(Url.Format(pathFormat, formatArgs));
+        }
+
+        public static HttpRequest WithUri(this HttpRequest httpRequest, string pathFormat, params object[] formatArgs)
+        {
+            return httpRequest.WithUri(Url.Format(pathFormat, formatArgs));
+        }
+
         public static HttpRequest WithPath(this HttpRequest httpRequest, string path)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithPath(path);
-            return httpRequest;
+            if (httpRequest.Uri != null)
+            {
+                return httpRequest.WithUri(httpRequest.Uri.WithPath(path));
+            }
+            else
+            {
+                return httpRequest.WithUri(path);
+            }
+        }
+
+        public static HttpRequest WithPath(this HttpRequest httpRequest, string pathFormat, params string[] formatArgs)
+        {
+            return httpRequest.WithPath(Url.Format(pathFormat, formatArgs));
+        }
+
+        public static HttpRequest WithPath(this HttpRequest httpRequest, string pathFormat, params object[] formatArgs)
+        {
+            return httpRequest.WithPath(Url.Format(pathFormat, formatArgs));
+        }
+
+        public static HttpRequest WithQuery(this HttpRequest httpRequest, string data)
+        {
+            if (httpRequest.Uri != null)
+            {
+                return httpRequest.WithUri(httpRequest.Uri.WithQuery(data));
+            }
+            else
+            {
+                return httpRequest.WithUri("?" + data.TrimStart('?'));
+            }
         }
 
         public static HttpRequest WithQuery(this HttpRequest httpRequest, object data)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQuery(data);
-            return httpRequest;
+            return httpRequest.WithQuery(QueryString.Serialize(data));
         }
 
         public static HttpRequest WithQuery(this HttpRequest httpRequest, IDictionary<string, object> data)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQuery(data);
-            return httpRequest;
+            return httpRequest.WithQuery(QueryString.Serialize(data));
         }
 
         public static HttpRequest WithQuery(this HttpRequest httpRequest, IDictionary<string, string[]> data)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQuery(data);
-            return httpRequest;
+            return httpRequest.WithQuery(QueryString.Serialize(data));
         }
 
         public static HttpRequest WithQuery(this HttpRequest httpRequest, IDictionary<string, string> data)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQuery(data);
-            return httpRequest;
+            return httpRequest.WithQuery(QueryString.Serialize(data));
         }
 
 #if NETFRAMEWORK || NETSTANDARD2
         public static HttpRequest WithQuery(this HttpRequest httpRequest, NameValueCollection data)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQuery(data);
-            return httpRequest;
+            return httpRequest.WithQuery(QueryString.Serialize(data));
         }
 #endif
 
-        public static HttpRequest WithQuery(this HttpRequest httpRequest, string data)
-        {
-            httpRequest.Uri = httpRequest.Uri?.WithQuery(data);
-            return httpRequest;
-        }
-
         public static HttpRequest WithQueryParameter(this HttpRequest httpRequest, string key, string value)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQueryParameter(key, value);
-            return httpRequest;
+            if (httpRequest.Uri != null)
+            {
+                return httpRequest.WithUri(httpRequest.Uri.WithQueryParameter(key, value));
+            }
+            else
+            {
+                return httpRequest.WithQuery(new Dictionary<string, string>() { { key, value } });
+            }
         }
 
         public static HttpRequest WithQueryParameter(this HttpRequest httpRequest, string key, object value)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQueryParameter(key, value);
-            return httpRequest;
+            if (httpRequest.Uri != null)
+            {
+                return httpRequest.WithUri(httpRequest.Uri.WithQueryParameter(key, value));
+            }
+            else
+            {
+                return httpRequest.WithQuery(new Dictionary<string, object>() { { key, value } });
+            }
         }
 
         public static HttpRequest WithQueryParameter(this HttpRequest httpRequest, string key, string[] values)
         {
-            httpRequest.Uri = httpRequest.Uri?.WithQueryParameter(key, values);
-            return httpRequest;
+            if (httpRequest.Uri != null)
+            {
+                return httpRequest.WithUri(httpRequest.Uri.WithQueryParameter(key, values));
+            }
+            else
+            {
+                return httpRequest.WithQuery(new Dictionary<string, string[]>() { { key, values } });
+            }
         }
 
         public static HttpRequest WithHeader(this HttpRequest httpRequest, string key, string value)
@@ -139,7 +185,7 @@ namespace jaytwo.HttpClient
 
         public static HttpRequest WithFormDataContent(this HttpRequest httpRequest, object data)
         {
-            httpRequest.Content = QueryStringUtility.GetQueryString(data);
+            httpRequest.Content = QueryString.Serialize(data);
             httpRequest.ContentType = MediaType.application_x_www_form_urlencoded;
 
             return httpRequest;

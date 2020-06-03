@@ -52,24 +52,28 @@ namespace jaytwo.HttpClient
             return httpClient.GetAsync(uri);
         }
 
-        public static Task<HttpResponse> GetAsync(this HttpClient httpClient, Uri uri)
+        public static async Task<HttpResponse> GetAsync(this HttpClient httpClient, Uri uri)
         {
             var request = new HttpRequest()
                 .WithMethod(HttpMethod.Get)
                 .WithUri(uri);
 
-            return httpClient.SubmitAsync(request);
+            var response = await httpClient.SubmitAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
 
         public static async Task<string> GetAsStringAsync(this HttpClient httpClient, Uri uri)
         {
             var response = await httpClient.GetAsync(uri);
+            return response.Content;
+        }
 
-            var result = response
-                .EnsureSuccessStatusCode()
-                .Content;
-
-            return result;
+        public static Task<string> GetAsStringAsync(this HttpClient httpClient, string pathOrUri)
+        {
+            var uri = new Uri(pathOrUri, UriKind.RelativeOrAbsolute);
+            return httpClient.GetAsStringAsync(uri);
         }
     }
 }

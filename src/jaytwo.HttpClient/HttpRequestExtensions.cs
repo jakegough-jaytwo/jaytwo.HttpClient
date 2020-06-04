@@ -215,5 +215,9 @@ namespace jaytwo.HttpClient
 
             return httpRequest;
         }
+
+        public static Task<HttpResponse> SendAsyncWith(this HttpRequest httpRequest, Func<HttpRequest, Task<HttpResponse>> sendDelegate) => sendDelegate.Invoke(httpRequest);
+
+        public static Task<HttpResponse> SendAsyncWith(this HttpRequest httpRequest, IHttpClient httpClient) => httpClient.SendAsync(httpRequest);
     }
 }

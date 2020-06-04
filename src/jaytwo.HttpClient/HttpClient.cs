@@ -6,16 +6,22 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using jaytwo.HttpClient.Exceptions;
 using jaytwo.MimeHelper;
 
 namespace jaytwo.HttpClient
 {
     public class HttpClient : IHttpClient
     {
-        private static System.Net.Http.HttpClient _systemHttpClient = new System.Net.Http.HttpClient();
+        private static System.Net.Http.HttpClient _defaultSystemHttpClient = new System.Net.Http.HttpClient();
 
         public HttpClient()
         {
+        }
+
+        public HttpClient(System.Net.Http.HttpClient systemHttpClient)
+        {
+            this.WithSystemHttpClient(systemHttpClient);
         }
 
         public HttpClient(string baseUri)
@@ -30,15 +36,17 @@ namespace jaytwo.HttpClient
 
         public static TimeSpan DefaultTimeout { get; } = TimeSpan.FromSeconds(30);
 
+        public System.Net.Http.HttpClient SystemHttpClient { get; internal set; }
+
         public IAuthenticationProvider AuthenticationProvider { get; set; }
 
         public Uri BaseUri { get; set; }
 
         public TimeSpan? Timeout { get; set; }
 
-        public Task<HttpResponse> SubmitAsync(HttpRequest request) => SubmitAsync(request, CancellationToken.None);
+        public Task<HttpResponse> SendAsync(HttpRequest request) => SendAsync(request, CancellationToken.None);
 
-        public async virtual Task<HttpResponse> SubmitAsync(HttpRequest request, CancellationToken cancellationToken)
+        public async virtual Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             request.Uri = GetUri(request.Uri);
 
@@ -86,6 +94,8 @@ namespace jaytwo.HttpClient
                     }
                 }
 
+                response.EnsureExpectedStatusCode();
+
                 return response;
             }
         }
@@ -126,7 +136,9 @@ namespace jaytwo.HttpClient
             using (var timeoutCancellationTokenSource = new CancellationTokenSource(timeout))
             using (var combinedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token))
             {
-                return _systemHttpClient.SendAsync(
+                var systemHttpClient = SystemHttpClient ?? _defaultSystemHttpClient;
+
+                return systemHttpClient.SendAsync(
                     request: httpRequestMessage,
                     completionOption: HttpCompletionOption.ResponseContentRead,
                     cancellationToken: combinedCancellationTokenSource.Token);

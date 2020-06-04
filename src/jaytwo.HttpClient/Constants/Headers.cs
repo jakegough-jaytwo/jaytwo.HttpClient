@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace jaytwo.HttpClient
+namespace jaytwo.HttpClient.Constants
 {
-    public interface IHttpClient
+    public static class Headers
     {
-        Task<HttpResponse> SendAsync(HttpRequest request);
+        public const string Authorization = "Authorization";
     }
 }

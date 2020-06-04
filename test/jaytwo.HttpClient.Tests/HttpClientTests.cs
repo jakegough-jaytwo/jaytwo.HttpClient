@@ -41,7 +41,23 @@ namespace jaytwo.HttpClient.Tests
                 .GetAsync($"/basic-auth/{user}/{pass}");
 
             // assert
-            var expected = response.EnsureSuccessStatusCode();
+            var expected = response.EnsureExpectedStatusCode();
+        }
+
+        [Fact]
+        public async Task TokenAuth_Works()
+        {
+            // arrange
+            var client = new HttpClient("http://httpbin.org");
+            var token = "hello";
+
+            // act
+            var response = await client
+                .WithTokenAuthentication(token)
+                .GetAsync($"/bearer");
+
+            // assert
+            var expected = response.EnsureExpectedStatusCode();
         }
     }
 }

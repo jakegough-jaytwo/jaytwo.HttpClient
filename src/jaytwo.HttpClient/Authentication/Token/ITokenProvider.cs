@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace jaytwo.HttpClient
+namespace jaytwo.HttpClient.Authentication.Token
 {
-    public interface IHttpClient
+    public interface ITokenProvider
     {
-        Task<HttpResponse> SendAsync(HttpRequest request);
+        string GetToken();
     }
 }

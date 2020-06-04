@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using jaytwo.FluentUri;
+using jaytwo.HttpClient.Authentication.Basic;
+using jaytwo.HttpClient.Authentication.Token;
 using jaytwo.MimeHelper;
 using Newtonsoft.Json;
 
@@ -13,6 +15,13 @@ namespace jaytwo.HttpClient
 {
     public static class HttpClientExtensions
     {
+        public static HttpClient WithSystemHttpClient(this HttpClient httpClient, System.Net.Http.HttpClient systemHttpClient)
+        {
+            httpClient.SystemHttpClient = systemHttpClient;
+
+            return httpClient;
+        }
+
         public static HttpClient WithBaseUri(this HttpClient httpClient, string baseUri)
         {
             return httpClient.WithBaseUri(new Uri(baseUri, UriKind.Absolute));
@@ -46,6 +55,21 @@ namespace jaytwo.HttpClient
             return httpClient.WithAuthenticationProvider(new BasicAuthenticationProvider(user, pass));
         }
 
+        public static HttpClient WithTokenAuthentication(this HttpClient httpClient, string token)
+        {
+            return httpClient.WithAuthenticationProvider(new TokenAuthenticationProvider(token));
+        }
+
+        public static HttpClient WithTokenAuthentication(this HttpClient httpClient, Func<string> tokenDelegate)
+        {
+            return httpClient.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenDelegate));
+        }
+
+        public static HttpClient WithTokenAuthentication(this HttpClient httpClient, ITokenProvider tokenProvider)
+        {
+            return httpClient.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenProvider));
+        }
+
         public static Task<HttpResponse> GetAsync(this HttpClient httpClient, string pathOrUri)
         {
             var uri = new Uri(pathOrUri, UriKind.RelativeOrAbsolute);
@@ -58,8 +82,8 @@ namespace jaytwo.HttpClient
                 .WithMethod(HttpMethod.Get)
                 .WithUri(uri);
 
-            var response = await httpClient.SubmitAsync(request);
-            response.EnsureSuccessStatusCode();
+            var response = await httpClient.SendAsync(request);
+            response.EnsureExpectedStatusCode();
 
             return response;
         }

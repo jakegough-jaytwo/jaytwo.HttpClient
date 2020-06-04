@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using jaytwo.HttpClient.Constants;
 
-namespace jaytwo.HttpClient
+namespace jaytwo.HttpClient.Authentication.Basic
 {
     public class BasicAuthenticationProvider : IAuthenticationProvider
     {
@@ -23,7 +24,7 @@ namespace jaytwo.HttpClient
             var bytes = Encoding.UTF8.GetBytes(combined);
             var base64 = Convert.ToBase64String(bytes);
 
-            request.Headers["Authorization"] = $"Basic {base64}";
+            request.Headers[Headers.Authorization] = $"Basic {base64}";
         }
     }
 }

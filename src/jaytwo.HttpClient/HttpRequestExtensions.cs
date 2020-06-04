@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using jaytwo.FluentUri;
+using jaytwo.HttpClient.Authentication.Basic;
+using jaytwo.HttpClient.Authentication.Token;
 using jaytwo.MimeHelper;
 using jaytwo.UrlHelper;
 using Newtonsoft.Json;
@@ -163,6 +166,13 @@ namespace jaytwo.HttpClient
 
         public static HttpRequest WithDefaultTimeout(this HttpRequest httpRequest) => httpRequest.WithTimeout(null);
 
+        public static HttpRequest WithExpectedStatusCodes(this HttpRequest httpRequest, params HttpStatusCode[] expectedStatusCodes)
+        {
+            httpRequest.ExpectedStatusCodes = expectedStatusCodes;
+
+            return httpRequest;
+        }
+
         public static HttpRequest WithAuthenticationProvider(this HttpRequest httpRequest, IAuthenticationProvider authenticationProvider)
         {
             httpRequest.AuthenticationProvider = authenticationProvider;
@@ -173,6 +183,21 @@ namespace jaytwo.HttpClient
         public static HttpRequest WithBasicAuthentication(this HttpRequest httpRequest, string user, string pass)
         {
             return httpRequest.WithAuthenticationProvider(new BasicAuthenticationProvider(user, pass));
+        }
+
+        public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, string token)
+        {
+            return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(token));
+        }
+
+        public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, Func<string> tokenDelegate)
+        {
+            return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenDelegate));
+        }
+
+        public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, ITokenProvider tokenProvider)
+        {
+            return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenProvider));
         }
 
         public static HttpRequest WithJsonContent(this HttpRequest httpRequest, object data)

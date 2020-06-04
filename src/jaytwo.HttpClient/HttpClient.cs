@@ -51,7 +51,10 @@ namespace jaytwo.HttpClient
             request.Uri = GetUri(request.Uri);
 
             var authenticationProvider = request.AuthenticationProvider ?? AuthenticationProvider;
-            authenticationProvider?.Authenticate(request);
+            if (authenticationProvider != null)
+            {
+                await authenticationProvider.AuthenticateAsync(request);
+            }
 
             var httpRequestMessage = new HttpRequestMessage
             {

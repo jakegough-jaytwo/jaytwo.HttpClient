@@ -8,13 +8,18 @@ namespace jaytwo.HttpClient.Authentication.Token
 {
     public class DelegateTokenProvider : ITokenProvider
     {
-        private readonly Func<string> _tokenDelegate;
+        private readonly Func<Task<string>> _tokenDelegate;
 
-        public DelegateTokenProvider(Func<string> tokenDelegate)
+        public DelegateTokenProvider(Func<Task<string>> tokenDelegate)
         {
             _tokenDelegate = tokenDelegate;
         }
 
-        public string GetToken() => _tokenDelegate.Invoke();
+        public DelegateTokenProvider(Func<string> tokenDelegate)
+            : this(() => Task.FromResult(tokenDelegate.Invoke()))
+        {
+        }
+
+        public Task<string> GetTokenAsync() => _tokenDelegate.Invoke();
     }
 }

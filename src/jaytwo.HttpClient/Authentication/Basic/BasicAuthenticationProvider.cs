@@ -18,13 +18,19 @@ namespace jaytwo.HttpClient.Authentication.Basic
             _pass = pass;
         }
 
-        public void Authenticate(HttpRequest request)
+        public Task AuthenticateAsync(HttpRequest request)
         {
             var combined = $"{_user}:{_pass}";
             var bytes = Encoding.UTF8.GetBytes(combined);
             var base64 = Convert.ToBase64String(bytes);
 
             request.Headers[Headers.Authorization] = $"Basic {base64}";
+
+#if NETFRAMEWORK || NETSTANDARD1_1
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
         }
     }
 }

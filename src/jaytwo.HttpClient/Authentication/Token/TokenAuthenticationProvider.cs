@@ -26,9 +26,9 @@ namespace jaytwo.HttpClient.Authentication.Token
             _tokenProvider = tokenProvider;
         }
 
-        public void Authenticate(HttpRequest request)
+        public async Task AuthenticateAsync(HttpRequest request)
         {
-            var token = _tokenProvider.GetToken();
+            var token = await _tokenProvider.GetTokenAsync();
             request.Headers[Headers.Authorization] = $"Bearer {token}";
         }
     }

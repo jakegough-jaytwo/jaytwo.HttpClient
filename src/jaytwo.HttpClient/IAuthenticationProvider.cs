@@ -8,6 +8,6 @@ namespace jaytwo.HttpClient
 {
     public interface IAuthenticationProvider
     {
-        void Authenticate(HttpRequest request);
+        Task AuthenticateAsync(HttpRequest request);
     }
 }

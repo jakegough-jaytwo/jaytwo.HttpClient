@@ -8,6 +8,6 @@ namespace jaytwo.HttpClient.Authentication.Token
 {
     public interface ITokenProvider
     {
-        string GetToken();
+        Task<string> GetTokenAsync();
     }
 }

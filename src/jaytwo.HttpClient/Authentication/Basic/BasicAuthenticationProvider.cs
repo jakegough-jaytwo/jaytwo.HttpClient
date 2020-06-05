@@ -7,7 +7,7 @@ using jaytwo.HttpClient.Constants;
 
 namespace jaytwo.HttpClient.Authentication.Basic
 {
-    public class BasicAuthenticationProvider : IAuthenticationProvider
+    public class BasicAuthenticationProvider : AuthenticationProviderBase, IAuthenticationProvider
     {
         private readonly string _user;
         private readonly string _pass;
@@ -18,19 +18,13 @@ namespace jaytwo.HttpClient.Authentication.Basic
             _pass = pass;
         }
 
-        public Task AuthenticateAsync(HttpRequest request)
+        public override void Authenticate(HttpRequest request)
         {
             var combined = $"{_user}:{_pass}";
             var bytes = Encoding.UTF8.GetBytes(combined);
             var base64 = Convert.ToBase64String(bytes);
 
             request.Headers[Headers.Authorization] = $"Basic {base64}";
-
-#if NETFRAMEWORK || NETSTANDARD1_1
-            return Task.FromResult(0);
-#else
-            return Task.CompletedTask;
-#endif
         }
     }
 }

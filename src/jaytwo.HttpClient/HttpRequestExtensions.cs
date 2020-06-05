@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using jaytwo.FluentUri;
 using jaytwo.HttpClient.Authentication.Basic;
+#if !NETSTANDARD1_1
+using jaytwo.HttpClient.Authentication.OAuth10a;
+#endif
 using jaytwo.HttpClient.Authentication.Token;
 using jaytwo.MimeHelper;
 using jaytwo.UrlHelper;
@@ -98,7 +101,7 @@ namespace jaytwo.HttpClient
             return httpRequest.WithQuery(QueryString.Serialize(data));
         }
 
-#if NETFRAMEWORK || NETSTANDARD2
+#if NETFRAMEWORK || !NETSTANDARD1
         public static HttpRequest WithQuery(this HttpRequest httpRequest, NameValueCollection data)
         {
             return httpRequest.WithQuery(QueryString.Serialize(data));
@@ -166,6 +169,11 @@ namespace jaytwo.HttpClient
 
         public static HttpRequest WithDefaultTimeout(this HttpRequest httpRequest) => httpRequest.WithTimeout(null);
 
+        public static HttpRequest WithExpectedStatusCode(this HttpRequest httpRequest, HttpStatusCode expectedStatusCode)
+        {
+            return httpRequest.WithExpectedStatusCodes(expectedStatusCode);
+        }
+
         public static HttpRequest WithExpectedStatusCodes(this HttpRequest httpRequest, params HttpStatusCode[] expectedStatusCodes)
         {
             httpRequest.ExpectedStatusCodes = expectedStatusCodes;
@@ -173,11 +181,17 @@ namespace jaytwo.HttpClient
             return httpRequest;
         }
 
-        public static HttpRequest WithAuthenticationProvider(this HttpRequest httpRequest, IAuthenticationProvider authenticationProvider)
+        public static HttpRequest WithAuthenticationProvider(this HttpRequest httpRequest, Func<IAuthenticationProvider> authenticationProviderDelegate)
         {
+            var authenticationProvider = authenticationProviderDelegate.Invoke();
             httpRequest.AuthenticationProvider = authenticationProvider;
 
             return httpRequest;
+        }
+
+        public static HttpRequest WithAuthenticationProvider(this HttpRequest httpRequest, IAuthenticationProvider authenticationProvider)
+        {
+            return httpRequest.WithAuthenticationProvider(() => authenticationProvider);
         }
 
         public static HttpRequest WithBasicAuthentication(this HttpRequest httpRequest, string user, string pass)
@@ -194,6 +208,18 @@ namespace jaytwo.HttpClient
         {
             return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenDelegate));
         }
+
+#if !NETSTANDARD1_1
+        public static HttpRequest WithOAuth10aAuthentication(this HttpRequest httpRequest, string consumerKey, string consumerSecret)
+        {
+            return httpRequest.WithAuthenticationProvider(new OAuth10aAuthenticationProvider(consumerKey, consumerSecret));
+        }
+
+        public static HttpRequest WithOAuth10aAuthentication(this HttpRequest httpRequest, string consumerKey, string consumerSecret, string token, string tokenSecret)
+        {
+            return httpRequest.WithAuthenticationProvider(new OAuth10aAuthenticationProvider(consumerKey, consumerSecret, token, tokenSecret));
+        }
+#endif
 
         public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, ITokenProvider tokenProvider)
         {
@@ -216,8 +242,10 @@ namespace jaytwo.HttpClient
             return httpRequest;
         }
 
-        public static Task<HttpResponse> SendAsyncWith(this HttpRequest httpRequest, Func<HttpRequest, Task<HttpResponse>> sendDelegate) => sendDelegate.Invoke(httpRequest);
+        public static Task<HttpResponse> SendWith(this HttpRequest httpRequest, Func<HttpRequest, Task<HttpResponse>> sendDelegate) => sendDelegate.Invoke(httpRequest);
 
-        public static Task<HttpResponse> SendAsyncWith(this HttpRequest httpRequest, IHttpClient httpClient) => httpClient.SendAsync(httpRequest);
+        public static Task<HttpResponse> SendWith(this HttpRequest httpRequest, IHttpClient httpClient) => httpClient.SendAsync(httpRequest);
+
+        public static Task<HttpResponse> SendWith(this HttpRequest httpRequest, Func<IHttpClient> httpClientDelegate) => httpClientDelegate.Invoke().SendAsync(httpRequest);
     }
 }

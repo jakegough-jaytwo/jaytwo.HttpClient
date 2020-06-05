@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using jaytwo.FluentUri;
 using jaytwo.HttpClient.Authentication.Basic;
+#if !NETSTANDARD1_1
+using jaytwo.HttpClient.Authentication.OAuth10a;
+#endif
 using jaytwo.HttpClient.Authentication.Token;
 using jaytwo.MimeHelper;
 using Newtonsoft.Json;
@@ -43,11 +46,17 @@ namespace jaytwo.HttpClient
 
         public static HttpClient WithDefaultTimeout(this HttpClient httpClient) => httpClient.WithTimeout(null);
 
-        public static HttpClient WithAuthenticationProvider(this HttpClient httpClient, IAuthenticationProvider authenticationProvider)
+        public static HttpClient WithAuthenticationProvider(this HttpClient httpClient, Func<IAuthenticationProvider> authenticationProviderDelegate)
         {
+            var authenticationProvider = authenticationProviderDelegate.Invoke();
             httpClient.AuthenticationProvider = authenticationProvider;
 
             return httpClient;
+        }
+
+        public static HttpClient WithAuthenticationProvider(this HttpClient httpClient, IAuthenticationProvider authenticationProvider)
+        {
+            return httpClient.WithAuthenticationProvider(() => authenticationProvider);
         }
 
         public static HttpClient WithBasicAuthentication(this HttpClient httpClient, string user, string pass)
@@ -70,34 +79,16 @@ namespace jaytwo.HttpClient
             return httpClient.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenProvider));
         }
 
-        public static Task<HttpResponse> GetAsync(this HttpClient httpClient, string pathOrUri)
+#if !NETSTANDARD1_1
+        public static HttpClient WithOAuth10aAuthentication(this HttpClient httpClient, string consumerKey, string consumerSecret)
         {
-            var uri = new Uri(pathOrUri, UriKind.RelativeOrAbsolute);
-            return httpClient.GetAsync(uri);
+            return httpClient.WithAuthenticationProvider(new OAuth10aAuthenticationProvider(consumerKey, consumerSecret));
         }
 
-        public static async Task<HttpResponse> GetAsync(this HttpClient httpClient, Uri uri)
+        public static HttpClient WithOAuth10aAuthentication(this HttpClient httpClient, string consumerKey, string consumerSecret, string token, string tokenSecret)
         {
-            var request = new HttpRequest()
-                .WithMethod(HttpMethod.Get)
-                .WithUri(uri);
-
-            var response = await httpClient.SendAsync(request);
-            response.EnsureExpectedStatusCode();
-
-            return response;
+            return httpClient.WithAuthenticationProvider(new OAuth10aAuthenticationProvider(consumerKey, consumerSecret, token, tokenSecret));
         }
-
-        public static async Task<string> GetAsStringAsync(this HttpClient httpClient, Uri uri)
-        {
-            var response = await httpClient.GetAsync(uri);
-            return response.Content;
-        }
-
-        public static Task<string> GetAsStringAsync(this HttpClient httpClient, string pathOrUri)
-        {
-            var uri = new Uri(pathOrUri, UriKind.RelativeOrAbsolute);
-            return httpClient.GetAsStringAsync(uri);
-        }
+#endif
     }
 }

@@ -6,8 +6,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using jaytwo.HttpClient.Exceptions;
-using jaytwo.MimeHelper;
 
 namespace jaytwo.HttpClient
 {
@@ -81,7 +79,7 @@ namespace jaytwo.HttpClient
                     StatusCode = httpResponseMessage.StatusCode,
                     ContentType = httpResponseMessage.Content?.Headers?.ContentType?.ToString(),
                     ContentLength = httpResponseMessage.Content?.Headers?.ContentLength ?? 0,
-                    Headers = null, // TODO
+                    Headers = GetHeaders(httpResponseMessage),
                     Elapsed = stopwatch.Elapsed,
                 };
 
@@ -101,6 +99,23 @@ namespace jaytwo.HttpClient
 
                 return response;
             }
+        }
+
+        private static IDictionary<string, string> GetHeaders(HttpResponseMessage httpResponseMessage)
+        {
+            var result = new Dictionary<string, string>();
+
+            foreach (var header in httpResponseMessage.Headers)
+            {
+                result.Add(header.Key, header.Value.First()); // TODO: care about multiple headers with the same key
+            }
+
+            foreach (var header in httpResponseMessage?.Content.Headers)
+            {
+                result.Add(header.Key, header.Value.First()); // TODO: care about multiple headers with the same key
+            }
+
+            return result;
         }
 
         private static HttpContent GetRequestHttpContent(HttpRequest request)

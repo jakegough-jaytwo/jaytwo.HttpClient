@@ -7,7 +7,7 @@ using jaytwo.HttpClient.Constants;
 
 namespace jaytwo.HttpClient.Authentication.Token
 {
-    public class TokenAuthenticationProvider : IAuthenticationProvider
+    public class TokenAuthenticationProvider : AuthenticationProviderBase, IAuthenticationProvider
     {
         private readonly ITokenProvider _tokenProvider;
 
@@ -26,7 +26,7 @@ namespace jaytwo.HttpClient.Authentication.Token
             _tokenProvider = tokenProvider;
         }
 
-        public async Task AuthenticateAsync(HttpRequest request)
+        public override async Task AuthenticateAsync(HttpRequest request)
         {
             var token = await _tokenProvider.GetTokenAsync();
             request.Headers[Headers.Authorization] = $"Bearer {token}";

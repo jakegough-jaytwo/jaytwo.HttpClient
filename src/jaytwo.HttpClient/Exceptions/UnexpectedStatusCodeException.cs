@@ -13,7 +13,10 @@ namespace jaytwo.HttpClient.Exceptions
             : base(GetMessage(statusCode))
         {
             Response = response;
+            StatusCode = response.StatusCode;
         }
+
+        public HttpStatusCode StatusCode { get; }
 
         public HttpResponse Response { get; }
 

@@ -110,6 +110,11 @@ namespace jaytwo.HttpClient
             }
         }
 
+        public virtual HttpRequest CreateRequest()
+        {
+            return new HttpRequest();
+        }
+
         private static IDictionary<string, string> GetHeaders(HttpResponseMessage httpResponseMessage)
         {
             var result = new Dictionary<string, string>();
@@ -167,7 +172,7 @@ namespace jaytwo.HttpClient
 
                 return systemHttpClient.SendAsync(
                     request: httpRequestMessage,
-                    completionOption: HttpCompletionOption.ResponseHeadersRead, // HttpCompletionOption.ResponseHeadersRead can cause "System.Net.Http.HttpRequestException : Error while copying content to a stream."
+                    completionOption: HttpCompletionOption.ResponseContentRead,
                     cancellationToken: combinedCancellationTokenSource.Token);
             }
         }

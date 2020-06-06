@@ -90,5 +90,11 @@ namespace jaytwo.HttpClient
             return httpClient.WithAuthenticationProvider(new OAuth10aAuthenticationProvider(consumerKey, consumerSecret, token, tokenSecret));
         }
 #endif
+
+        public static HttpClient WithHttpVersion(this HttpClient httpClient, Version httpVersion)
+        {
+            httpClient.HttpVersion = httpVersion;
+            return httpClient;
+        }
     }
 }

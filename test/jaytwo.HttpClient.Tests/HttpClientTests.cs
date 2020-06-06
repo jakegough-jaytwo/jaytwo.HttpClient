@@ -57,6 +57,54 @@ namespace jaytwo.HttpClient.Tests
         }
 
         [Fact]
+        public async Task HttpVersion_10_Works()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync(request =>
+            {
+                request
+                    .WithPath("/get")
+                    .WithHttpVersion(HttpVersion.Version10);
+            });
+
+            // assert
+        }
+
+        [Fact]
+        public async Task HttpVersion_11_Works()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync(request =>
+            {
+                request
+                    .WithPath("/get")
+                    .WithHttpVersion(HttpVersion.Version11);
+            });
+
+            // assert
+        }
+
+        [Fact]
+        public async Task HttpVersion_20_Works()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync(request =>
+            {
+                request
+                    .WithPath("/get")
+                    .WithHttpVersion(HttpVersion.Version20);
+            });
+
+            // assert
+        }
+
+        [Fact]
         public async Task ResponseHeaders_Work_ContentType()
         {
             // arrange

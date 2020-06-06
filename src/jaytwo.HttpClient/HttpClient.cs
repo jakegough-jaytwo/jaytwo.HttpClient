@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -42,6 +43,8 @@ namespace jaytwo.HttpClient
 
         public TimeSpan? Timeout { get; set; }
 
+        public Version HttpVersion { get; set; } = new Version(1, 1);
+
         public Task<HttpResponse> SendAsync(HttpRequest request) => SendAsync(request, CancellationToken.None);
 
         public async virtual Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
@@ -60,6 +63,12 @@ namespace jaytwo.HttpClient
                 RequestUri = request.Uri,
                 Content = GetRequestHttpContent(request),
             };
+
+            var httpVersion = request.HttpVersion ?? HttpVersion;
+            if (httpVersion != null)
+            {
+                httpRequestMessage.Version = httpVersion;
+            }
 
             foreach (var header in request.Headers)
             {

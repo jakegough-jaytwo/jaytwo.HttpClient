@@ -158,7 +158,7 @@ namespace jaytwo.HttpClient
 
                 return systemHttpClient.SendAsync(
                     request: httpRequestMessage,
-                    completionOption: HttpCompletionOption.ResponseContentRead,
+                    completionOption: HttpCompletionOption.ResponseHeadersRead, // HttpCompletionOption.ResponseHeadersRead can cause "System.Net.Http.HttpRequestException : Error while copying content to a stream."
                     cancellationToken: combinedCancellationTokenSource.Token);
             }
         }

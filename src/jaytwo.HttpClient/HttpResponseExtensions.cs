@@ -45,6 +45,24 @@ namespace jaytwo.HttpClient
             return httpResponse.AsString();
         }
 
+        public static byte[] AsByteArray(this HttpResponse httpResponse)
+        {
+            if (httpResponse.Content != null)
+            {
+                return Encoding.UTF8.GetBytes(httpResponse.Content);
+            }
+            else
+            {
+                return httpResponse.BinaryContent;
+            }
+        }
+
+        public static async Task<byte[]> AsByteArray(this Task<HttpResponse> httpResponseTask)
+        {
+            var httpResponse = await httpResponseTask;
+            return httpResponse.AsByteArray();
+        }
+
         public static T AsAnonymousType<T>(this HttpResponse httpResponse, T anonymousTypeObject)
         {
             var asString = httpResponse.AsString();
@@ -90,6 +108,18 @@ namespace jaytwo.HttpClient
         {
             var httpResponse = await httpResponseTask;
             return httpResponse.ParseWith<T>(parseDelegate);
+        }
+
+        public static string GetHeaderValue(this HttpResponse httpResponse, string key)
+        {
+            var header = httpResponse.Headers?.Where(x => string.Equals(x.Key, key, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (header.Any())
+            {
+                return header.Single().Value;
+            }
+
+            return null;
         }
     }
 }

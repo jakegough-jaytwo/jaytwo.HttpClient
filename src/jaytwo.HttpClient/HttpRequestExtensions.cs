@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using jaytwo.FluentUri;
 using jaytwo.HttpClient.Authentication.Basic;
 #if !NETSTANDARD1_1
+using jaytwo.HttpClient.Authentication.Digest;
+#endif
+#if !NETSTANDARD1_1
 using jaytwo.HttpClient.Authentication.OAuth10a;
 #endif
 using jaytwo.HttpClient.Authentication.Token;
@@ -218,6 +221,13 @@ namespace jaytwo.HttpClient
             return httpRequest.WithAuthenticationProvider(new BasicAuthenticationProvider(user, pass));
         }
 
+#if !NETSTANDARD1_1
+        public static HttpRequest WithDigestAuthentication(this HttpRequest httpRequest, string user, string pass)
+        {
+            return httpRequest.WithAuthenticationProvider(new DigestAuthenticationProvider(user, pass));
+        }
+#endif
+
         public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, string token)
         {
             return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(token));
@@ -226,6 +236,11 @@ namespace jaytwo.HttpClient
         public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, Func<string> tokenDelegate)
         {
             return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenDelegate));
+        }
+
+        public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, ITokenProvider tokenProvider)
+        {
+            return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenProvider));
         }
 
 #if !NETSTANDARD1_1
@@ -239,11 +254,6 @@ namespace jaytwo.HttpClient
             return httpRequest.WithAuthenticationProvider(new OAuth10aAuthenticationProvider(consumerKey, consumerSecret, token, tokenSecret));
         }
 #endif
-
-        public static HttpRequest WithTokenAuthentication(this HttpRequest httpRequest, ITokenProvider tokenProvider)
-        {
-            return httpRequest.WithAuthenticationProvider(new TokenAuthenticationProvider(tokenProvider));
-        }
 
         public static HttpRequest WithJsonContent(this HttpRequest httpRequest, object data)
         {

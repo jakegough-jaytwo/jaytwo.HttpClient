@@ -242,6 +242,14 @@ namespace jaytwo.HttpClient
             return httpRequest;
         }
 
+#if NETSTANDARD2_1
+        public static HttpRequest WithHttpVersion(this HttpRequest httpRequest, Version httpVersion)
+        {
+            httpRequest.HttpVersion = httpVersion;
+            return httpRequest;
+        }
+#endif
+
         public static Task<HttpResponse> SendWith(this HttpRequest httpRequest, Func<HttpRequest, Task<HttpResponse>> sendDelegate) => sendDelegate.Invoke(httpRequest);
 
         public static Task<HttpResponse> SendWith(this HttpRequest httpRequest, IHttpClient httpClient) => httpClient.SendAsync(httpRequest);

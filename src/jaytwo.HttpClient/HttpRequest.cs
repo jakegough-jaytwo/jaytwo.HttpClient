@@ -53,6 +53,10 @@ namespace jaytwo.HttpClient
 
         public byte[] BinaryContent { get; set; }
 
+#if NETSTANDARD2_1
+        public Version HttpVersion { get; set; } = System.Net.HttpVersion.Version11;
+#endif
+
         public IList<HttpStatusCode> ExpectedStatusCodes { get; set; }
 
         public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();

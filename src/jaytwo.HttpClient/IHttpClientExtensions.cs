@@ -71,7 +71,7 @@ namespace jaytwo.HttpClient
 
         private static Task<HttpResponse> SendAsync(IHttpClient httpClient, HttpMethod method, Action<HttpRequest> requestBuilder)
         {
-            var request = httpClient.CreateRequest().WithMethod(method);
+            var request = new HttpRequest().WithMethod(method);
             requestBuilder.Invoke(request);
             return httpClient.SendAsync(request);
         }

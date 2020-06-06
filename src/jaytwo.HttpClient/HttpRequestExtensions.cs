@@ -26,6 +26,25 @@ namespace jaytwo.HttpClient
             return httpRequest;
         }
 
+        public static HttpRequest WithBaseUri(this HttpRequest httpRequest, Uri uri)
+        {
+            if (httpRequest.Uri == null)
+            {
+                httpRequest.Uri = uri;
+            }
+            else
+            {
+                httpRequest.Uri = new Uri(uri, httpRequest.Uri);
+            }
+
+            return httpRequest;
+        }
+
+        public static HttpRequest WithBaseUri(this HttpRequest httpRequest, string pathOrUri)
+        {
+            return httpRequest.WithBaseUri(new Uri(pathOrUri, UriKind.RelativeOrAbsolute));
+        }
+
         public static HttpRequest WithUri(this HttpRequest httpRequest, Uri uri)
         {
             httpRequest.Uri = uri;

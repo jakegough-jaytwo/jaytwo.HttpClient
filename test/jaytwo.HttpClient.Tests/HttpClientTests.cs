@@ -149,6 +149,24 @@ namespace jaytwo.HttpClient.Tests
         }
 
         [Fact]
+        public async Task WithPath_before_WithBaseUri()
+        {
+            // arrange
+            var client = new HttpClient();
+
+            // act
+            var response = await client.GetAsync(request =>
+            {
+                request
+                    .WithPath("/get?hello=world")
+                    .WithBaseUri("http://httpbin.org");
+            });
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
         public async Task Unexpected_MethodNotAllowed_Throws_UnexpectedStatusCodeException()
         {
             // arrange

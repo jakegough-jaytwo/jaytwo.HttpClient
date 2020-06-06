@@ -110,11 +110,6 @@ namespace jaytwo.HttpClient
             }
         }
 
-        public virtual HttpRequest CreateRequest()
-        {
-            return new HttpRequest();
-        }
-
         private static IDictionary<string, string> GetHeaders(HttpResponseMessage httpResponseMessage)
         {
             var result = new Dictionary<string, string>();

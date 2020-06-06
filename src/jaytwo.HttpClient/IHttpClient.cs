@@ -9,7 +9,5 @@ namespace jaytwo.HttpClient
     public interface IHttpClient
     {
         Task<HttpResponse> SendAsync(HttpRequest request);
-
-        HttpRequest CreateRequest();
     }
 }

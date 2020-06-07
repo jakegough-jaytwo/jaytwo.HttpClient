@@ -22,42 +22,66 @@ namespace jaytwo.HttpClient.Authentication.Digest
 
         public static DigestServerParams Parse(string wwwAuthenticateHeader)
         {
-            if (!wwwAuthenticateHeader.StartsWith("Digest "))
+            var headerValues = DeserializeDictionary(wwwAuthenticateHeader);
+
+            var result = new DigestServerParams();
+
+            if (headerValues.TryGetValue("qop", out string qop))
+            {
+                result.Qop = qop;
+            }
+
+            if (headerValues.TryGetValue("nonce", out string nonce))
+            {
+                result.Nonce = nonce;
+            }
+
+            if (headerValues.TryGetValue("realm", out string realm))
+            {
+                result.Realm = realm;
+            }
+
+            if (headerValues.TryGetValue("opaque", out string opaque))
+            {
+                result.Opaque = opaque;
+            }
+
+            if (headerValues.TryGetValue("algorithm", out string algorithm))
+            {
+                result.Algorithm = algorithm;
+            }
+
+            if (headerValues.TryGetValue("stale", out string stale))
+            {
+                result.Stale = stale;
+            }
+
+            return result;
+        }
+
+        internal static IDictionary<string, string> DeserializeDictionary(string headerValue)
+        {
+            if (!headerValue.StartsWith("Digest "))
             {
                 throw new InvalidOperationException("Not a digest header!");
             }
 
-            wwwAuthenticateHeader = wwwAuthenticateHeader.Substring(7);
+            headerValue = headerValue.Substring(7);
 
-            var headerValues = wwwAuthenticateHeader
+            var result = headerValue
                 .Split(',')
                 .Select(x => x.Trim())
                 .Select(x => x.Split('='))
                 .ToDictionary(x => x.First(), x => x.Last().TrimStart('"').TrimEnd('"'));
 
-            var result = new DigestServerParams()
-            {
-                Qop = headerValues["qop"],
-                Nonce = headerValues["nonce"],
-                Realm = headerValues["realm"],
-                Opaque = headerValues["opaque"],
-                Algorithm = headerValues["algorithm"],
-                Stale = headerValues["stale"],
-            };
-
             return result;
         }
 
-        public bool IsQopEmpty() => string.IsNullOrWhiteSpace(Qop);
+        internal static string SerializeDictionary(IDictionary<string, string> data)
+        {
+            var result = "Digest " + string.Join(", ", data.Select(x => $"{x.Key}=\"{x.Value}\""));
 
-        public bool IsQopAuth() => string.Equals(Qop, "auth", StringComparison.OrdinalIgnoreCase);
-
-        public bool IsQopAuthInt() => string.Equals(Qop, "auth-int", StringComparison.OrdinalIgnoreCase);
-
-        public bool IsAlgorithmEmpty() => string.IsNullOrWhiteSpace(Algorithm);
-
-        public bool IsAlgorithmMd5() => string.Equals(Algorithm, "MD5", StringComparison.OrdinalIgnoreCase);
-
-        public bool IsAlgorithmMd5Sess() => string.Equals(Algorithm, "MD5-sess", StringComparison.OrdinalIgnoreCase);
+            return result;
+        }
     }
 }

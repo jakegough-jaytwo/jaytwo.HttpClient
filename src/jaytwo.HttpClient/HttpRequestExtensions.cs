@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using jaytwo.FluentUri;
+using jaytwo.HttpClient.Authentication;
 using jaytwo.HttpClient.Authentication.Basic;
 #if !NETSTANDARD1_1
 using jaytwo.HttpClient.Authentication.Digest;
@@ -123,7 +124,7 @@ namespace jaytwo.HttpClient
             return httpRequest.WithQuery(QueryString.Serialize(data));
         }
 
-#if NETFRAMEWORK || !NETSTANDARD1
+#if NETFRAMEWORK || NETSTANDARD2
         public static HttpRequest WithQuery(this HttpRequest httpRequest, NameValueCollection data)
         {
             return httpRequest.WithQuery(QueryString.Serialize(data));

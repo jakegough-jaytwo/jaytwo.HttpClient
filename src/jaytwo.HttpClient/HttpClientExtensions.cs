@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using jaytwo.FluentUri;
+using jaytwo.HttpClient.Authentication;
 using jaytwo.HttpClient.Authentication.Basic;
 #if !NETSTANDARD1_1
 using jaytwo.HttpClient.Authentication.OAuth10a;

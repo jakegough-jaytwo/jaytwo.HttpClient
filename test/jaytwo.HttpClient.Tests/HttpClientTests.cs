@@ -312,27 +312,6 @@ namespace jaytwo.HttpClient.Tests
         }
 
         [Theory]
-        [InlineData("auth")]
-        [InlineData("auth-int")]
-        public async Task DigestAuth_Works_qop(string qop)
-        {
-            // arrange
-            var user = "hello";
-            var pass = "world";
-
-            // act
-            var response = await _httpClient.GetAsync(request =>
-            {
-                request
-                    .WithPath($"/digest-auth/{qop}/{user}/{pass}")
-                    .WithDigestAuthentication(user, pass);
-            });
-
-            // assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Theory]
         [InlineData("auth", "MD5")]
         [InlineData("auth-int", "MD5")]
         // not worth supporting, not even postman or mozilla supports RFC 7616
@@ -340,7 +319,7 @@ namespace jaytwo.HttpClient.Tests
         //[InlineData("auth", "SHA-512")]
         //[InlineData("auth-int", "SHA-256")]
         //[InlineData("auth-int", "SHA-512")]
-        public async Task DigestAuth_Works_qop_algorithm(string qop, string algorithm)
+        public async Task DigestAuth_Works(string qop, string algorithm)
         {
             // arrange
             var user = "hello";

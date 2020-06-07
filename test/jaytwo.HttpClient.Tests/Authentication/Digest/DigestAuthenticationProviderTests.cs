@@ -13,7 +13,7 @@ namespace jaytwo.HttpClient.Tests.Authentication.Digest
     public class DigestAuthenticationProviderTests
     {
         [Fact]
-        public async Task foo()
+        public async Task AuthenticateAsync_works()
         {
             // arrange
             var user = "Mufasa";

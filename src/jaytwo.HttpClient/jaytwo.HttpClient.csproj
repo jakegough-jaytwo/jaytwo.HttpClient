@@ -6,6 +6,8 @@
     <RepositoryUrl>https://github.com/jakegough/jaytwo.HttpClient</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
@@ -13,10 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.3-beta-20200607153918" />
-    <PackageReference Include="jaytwo.FluentUri" Version="0.1.1-beta-20200605073807" />
-    <PackageReference Include="jaytwo.DateTimeHelper" Version="0.1.0-beta-20200605070721" />
-    <PackageReference Include="jaytwo.MimeHelper" Version="0.1.1" />
+    <PackageReference Include="jaytwo.FluentUri" Version="0.1.1" />
+    <PackageReference Include="jaytwo.UrlHelper" Version="0.1.5" />
+    <PackageReference Include="jaytwo.DateTimeHelper" Version="0.1.0" />
+    <PackageReference Include="jaytwo.MimeHelper" Version="0.1.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">

@@ -31,6 +31,12 @@ namespace jaytwo.HttpClient.Authentication.OAuth10a
             _tokenSecret = tokenSecret;
         }
 
+        public string OauthVersion { get; set; } = "1.0";
+
+        internal Func<DateTimeOffset> GetUtcNowDelegate { get; set; } = () => DateTimeOffset.UtcNow;
+
+        internal Func<string> GetNonceDelegate { get; set; } = () => Guid.NewGuid().ToString();
+
         public override void Authenticate(HttpRequest request)
         {
             var calculator = new OAuth10aSignatureCalculator()
@@ -41,8 +47,9 @@ namespace jaytwo.HttpClient.Authentication.OAuth10a
                 TokenSecret = _tokenSecret,
                 HttpMethod = request.Method,
                 Url = request.Uri.AbsoluteUri,
-                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                Nonce = Guid.NewGuid().ToString(),
+                Timestamp = GetUtcNowDelegate.Invoke().ToUnixTimeSeconds(),
+                Nonce = GetNonceDelegate.Invoke(),
+                OauthVersion = OauthVersion,
             };
 
             if (request.ContentType == MediaType.application_x_www_form_urlencoded)

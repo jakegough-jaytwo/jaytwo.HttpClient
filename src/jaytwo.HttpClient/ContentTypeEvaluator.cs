@@ -155,7 +155,7 @@ namespace jaytwo.HttpClient
 
             var stringMediaTypePrefixes = new[]
             {
-                "text/"
+                "text/",
             };
 
             var stringMediaTypeSuffixes = new[]

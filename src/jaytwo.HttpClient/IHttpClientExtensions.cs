@@ -69,11 +69,20 @@ namespace jaytwo.HttpClient
         public static Task<HttpResponse> TraceAsync(this IHttpClient httpClient, Action<HttpRequest> requestBuilder)
             => SendAsync(httpClient, HttpMethod.Trace, requestBuilder);
 
-        private static Task<HttpResponse> SendAsync(IHttpClient httpClient, HttpMethod method, Action<HttpRequest> requestBuilder)
+        public static Task<HttpResponse> SendAsync(this IHttpClient httpClient, Action<HttpRequest> requestBuilder)
         {
-            var request = new HttpRequest().WithMethod(method);
+            var request = new HttpRequest();
             requestBuilder.Invoke(request);
             return httpClient.SendAsync(request);
+        }
+
+        private static Task<HttpResponse> SendAsync(IHttpClient httpClient, HttpMethod method, Action<HttpRequest> requestBuilder)
+        {
+            return httpClient.SendAsync(request =>
+            {
+                request.WithMethod(method);
+                requestBuilder.Invoke(request);
+            });
         }
     }
 }

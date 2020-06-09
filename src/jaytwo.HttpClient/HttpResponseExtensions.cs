@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using jaytwo.HttpClient.Exceptions;
 using Newtonsoft.Json;
 
@@ -35,8 +36,19 @@ namespace jaytwo.HttpClient
 
         public static string AsString(this HttpResponse httpResponse)
         {
-            // TODO: return string even if the content gets mapped to BinaryContent
-            return httpResponse.Content;
+            if (httpResponse.Content != null)
+            {
+                return httpResponse.Content;
+            }
+            else if (httpResponse.BinaryContent != null)
+            {
+                // TODO: read the headers in case a different encoding is defined
+                return Encoding.UTF8.GetString(httpResponse.BinaryContent, 0, httpResponse.BinaryContent.Length);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static async Task<string> AsString(this Task<HttpResponse> httpResponseTask)
@@ -65,8 +77,7 @@ namespace jaytwo.HttpClient
 
         public static T AsAnonymousType<T>(this HttpResponse httpResponse, T anonymousTypeObject)
         {
-            var asString = httpResponse.AsString();
-            return JsonConvert.DeserializeAnonymousType(asString, anonymousTypeObject);
+            return httpResponse.As<T>();
         }
 
         public static async Task<T> AsAnonymousType<T>(this Task<HttpResponse> httpResponseTask, T anonymousTypeObject)
@@ -77,8 +88,35 @@ namespace jaytwo.HttpClient
 
         public static T As<T>(this HttpResponse httpResponse)
         {
-            var asString = httpResponse.AsString();
-            return JsonConvert.DeserializeObject<T>(asString);
+            bool isJson = false;
+            bool isXml = false;
+            if (ContentTypeEvaluator.IsJsonContent(httpResponse))
+            {
+                isJson = true;
+            }
+            else if (ContentTypeEvaluator.IsXmlContent(httpResponse))
+            {
+                isXml = true;
+            }
+            else if (ContentTypeEvaluator.CouldBeJsonContent(httpResponse))
+            {
+                isJson = true;
+            }
+            else if (ContentTypeEvaluator.CouldBeXmlContent(httpResponse))
+            {
+                isXml = true;
+            }
+
+            if (isJson)
+            {
+                return httpResponse.DeserializeJsonAs<T>();
+            }
+            else if (isXml)
+            {
+                return httpResponse.DeserializeXmlAs<T>();
+            }
+
+            throw new InvalidOperationException("Data must be JSON or XML to automatically deserialize.");
         }
 
         public static async Task<T> As<T>(this Task<HttpResponse> httpResponseTask)
@@ -120,6 +158,21 @@ namespace jaytwo.HttpClient
             }
 
             return null;
+        }
+
+        internal static T DeserializeJsonAs<T>(this HttpResponse httpResponse)
+        {
+            var asString = httpResponse.AsString();
+            return JsonConvert.DeserializeObject<T>(asString);
+        }
+
+        internal static T DeserializeXmlAs<T>(this HttpResponse httpResponse)
+        {
+            var xml = httpResponse.AsString();
+            var xDocument = XDocument.Parse(xml);
+            var jsonText = JsonConvert.SerializeXNode(xDocument);
+            var result = JsonConvert.DeserializeObject<T>(jsonText);
+            return result;
         }
     }
 }

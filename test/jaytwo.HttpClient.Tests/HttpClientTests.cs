@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -366,6 +367,62 @@ namespace jaytwo.HttpClient.Tests
 
             // assert
             var expected = response.EnsureExpectedStatusCode();
+        }
+
+        [Fact]
+        public async Task Get_json_Works()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync("/json");
+
+            // assert
+            var prototype = new
+            {
+                slideshow = new
+                {
+                    slides = new[]
+                    {
+                        new
+                        {
+                            title = default(string),
+                        },
+                    },
+                },
+            };
+
+            var actual = response.AsAnonymousType(prototype);
+            Assert.NotEmpty(actual.slideshow.slides);
+            Assert.NotEmpty(actual.slideshow.slides.First().title);
+        }
+
+        [Fact]
+        public async Task Get_xml_Works()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync("/xml");
+
+            // assert
+            var prototype = new
+            {
+                slideshow = new
+                {
+                    slide = new[]
+                    {
+                        new
+                        {
+                            title = default(string),
+                        },
+                    },
+                },
+            };
+
+            var actual = response.AsAnonymousType(prototype);
+            Assert.NotEmpty(actual.slideshow.slide);
+            Assert.NotEmpty(actual.slideshow.slide.First().title);
         }
     }
 }

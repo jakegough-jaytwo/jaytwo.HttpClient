@@ -30,6 +30,11 @@ namespace jaytwo.HttpClient
             return httpRequest;
         }
 
+        public static HttpRequest WithMethod(this HttpRequest httpRequest, string method)
+        {
+            return httpRequest.WithMethod(new HttpMethod(method));
+        }
+
         public static HttpRequest WithBaseUri(this HttpRequest httpRequest, Uri uri)
         {
             if (httpRequest.Uri == null)

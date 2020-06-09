@@ -50,7 +50,16 @@ namespace jaytwo.HttpClient
 
         public async virtual Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
+            if (request.Method == null)
+            {
+                throw new ArgumentException($"{nameof(request)}.{nameof(request.Method)} is required.");
+            }
+
             request.Uri = GetUri(request.Uri);
+            if (request.Method == null)
+            {
+                throw new ArgumentException($"{nameof(request)}.{nameof(Uri)} is required.");
+            }
 
             var authenticationProvider = request.AuthenticationProvider ?? AuthenticationProvider;
             if (authenticationProvider != null)

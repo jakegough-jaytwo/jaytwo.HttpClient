@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using jaytwo.HttpClient.Exceptions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace jaytwo.HttpClient
 {
@@ -88,41 +89,32 @@ namespace jaytwo.HttpClient
 
         public static T As<T>(this HttpResponse httpResponse)
         {
-            bool isJson = false;
-            bool isXml = false;
-            if (ContentTypeEvaluator.IsJsonContent(httpResponse))
-            {
-                isJson = true;
-            }
-            else if (ContentTypeEvaluator.IsXmlContent(httpResponse))
-            {
-                isXml = true;
-            }
-            else if (ContentTypeEvaluator.CouldBeJsonContent(httpResponse))
-            {
-                isJson = true;
-            }
-            else if (ContentTypeEvaluator.CouldBeXmlContent(httpResponse))
-            {
-                isXml = true;
-            }
-
-            if (isJson)
-            {
-                return httpResponse.DeserializeJsonAs<T>();
-            }
-            else if (isXml)
-            {
-                return httpResponse.DeserializeXmlAs<T>();
-            }
-
-            throw new InvalidOperationException("Data must be JSON or XML to automatically deserialize.");
+            return AutoDeserializeAs(
+                httpResponse,
+                jsonDelegate: DeserializeJsonAs<T>,
+                xmlDelegate: DeserializeXmlAs<T>);
         }
 
         public static async Task<T> As<T>(this Task<HttpResponse> httpResponseTask)
         {
             var httpResponse = await httpResponseTask;
             return httpResponse.As<T>();
+        }
+
+        public static IDictionary<string, object> AsDictionary(this HttpResponse httpResponse) => AsDictionary(httpResponse, null);
+
+        public static IDictionary<string, object> AsDictionary(this HttpResponse httpResponse, StringComparer keyComparer)
+        {
+            return AutoDeserializeAs(
+                httpResponse,
+                jsonDelegate: x => JsonAsDictionary(x, keyComparer),
+                xmlDelegate: x => XmlAsDictionary(x, keyComparer));
+        }
+
+        public static async Task<IDictionary<string, object>> AsDictionary(this Task<HttpResponse> httpResponseTask)
+        {
+            var httpResponse = await httpResponseTask;
+            return httpResponse.AsDictionary();
         }
 
         public static T ParseWith<T>(this HttpResponse httpResponse, Func<HttpResponse, T> parseDelegate)
@@ -160,18 +152,63 @@ namespace jaytwo.HttpClient
             return null;
         }
 
-        internal static T DeserializeJsonAs<T>(this HttpResponse httpResponse)
+        internal static T AutoDeserializeAs<T>(HttpResponse httpResponse, Func<string, T> jsonDelegate, Func<string, T> xmlDelegate)
         {
+            bool isJson = false;
+            bool isXml = false;
+            if (ContentTypeEvaluator.IsJsonContent(httpResponse))
+            {
+                isJson = true;
+            }
+            else if (ContentTypeEvaluator.IsXmlContent(httpResponse))
+            {
+                isXml = true;
+            }
+            else if (ContentTypeEvaluator.CouldBeJsonContent(httpResponse))
+            {
+                isJson = true;
+            }
+            else if (ContentTypeEvaluator.CouldBeXmlContent(httpResponse))
+            {
+                isXml = true;
+            }
+
             var asString = httpResponse.AsString();
-            return JsonConvert.DeserializeObject<T>(asString);
+            if (isJson)
+            {
+                return jsonDelegate.Invoke(asString);
+            }
+            else if (isXml)
+            {
+                return xmlDelegate.Invoke(asString);
+            }
+
+            throw new InvalidOperationException("Data must be JSON or XML to automatically deserialize.");
         }
 
-        internal static T DeserializeXmlAs<T>(this HttpResponse httpResponse)
+        internal static T DeserializeJsonAs<T>(string json)
         {
-            var xml = httpResponse.AsString();
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+
+        internal static IDictionary<string, object> JsonAsDictionary(string json, StringComparer comparer)
+        {
+            return JsonHelper.ToDictionary(json, comparer);
+        }
+
+        internal static T DeserializeXmlAs<T>(string xml)
+        {
             var xDocument = XDocument.Parse(xml);
             var jsonText = JsonConvert.SerializeXNode(xDocument);
-            var result = JsonConvert.DeserializeObject<T>(jsonText);
+            var result = DeserializeJsonAs<T>(jsonText);
+            return result;
+        }
+
+        internal static IDictionary<string, object> XmlAsDictionary(string xml, StringComparer comparer)
+        {
+            var xDocument = XDocument.Parse(xml);
+            var jsonText = JsonConvert.SerializeXNode(xDocument);
+            var result = JsonAsDictionary(jsonText, comparer);
             return result;
         }
     }

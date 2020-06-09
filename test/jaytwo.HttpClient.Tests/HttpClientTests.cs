@@ -424,5 +424,34 @@ namespace jaytwo.HttpClient.Tests
             Assert.NotEmpty(actual.slideshow.slide);
             Assert.NotEmpty(actual.slideshow.slide.First().title);
         }
+
+        [Fact]
+        public async Task Get_json_as_dictionary_Works()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync("/json");
+
+            // assert
+            var actual = response.AsDictionary();
+            Assert.NotNull(actual["slideshow"]);
+            //Assert.NotEmpty(actual.slideshow.slides.First().title);
+        }
+
+        [Fact]
+        public async Task Get_xml_as_dictionary_Works()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync("/xml");
+
+            // assert
+            var actual = response.AsDictionary();
+            Assert.NotNull(actual["slideshow"]);
+            //Assert.NotEmpty(actual.slideshow.slide);
+            //Assert.NotEmpty(actual.slideshow.slide.First().title);
+        }
     }
 }

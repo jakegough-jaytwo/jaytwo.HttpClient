@@ -7,6 +7,7 @@ RUN apt-get update \
     make \
     mono-devel \
   && apt-get clean \
+  && apt-get autoremove\
   && rm -rf /var/lib/apt/lists/*
 ENV FrameworkPathOverride /usr/lib/mono/4.5/
 

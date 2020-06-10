@@ -36,6 +36,8 @@ namespace jaytwo.HttpClient
 
         public static TimeSpan DefaultTimeout { get; } = TimeSpan.FromSeconds(30);
 
+        public static HttpClient Default { get; } = new HttpClient();
+
         public System.Net.Http.HttpClient SystemHttpClient { get; internal set; }
 
         public IAuthenticationProvider AuthenticationProvider { get; set; }
@@ -108,7 +110,7 @@ namespace jaytwo.HttpClient
                     }
                     else
                     {
-                        response.BinaryContent = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+                        response.ContentBytes = await httpResponseMessage.Content.ReadAsByteArrayAsync();
                     }
                 }
 

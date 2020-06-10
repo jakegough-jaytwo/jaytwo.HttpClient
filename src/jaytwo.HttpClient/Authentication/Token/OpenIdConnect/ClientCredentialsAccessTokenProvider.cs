@@ -14,7 +14,7 @@ namespace jaytwo.HttpClient.Authentication.Token.OpenIdConnect
 
         public ClientCredentialsAccessTokenProvider(IHttpClient httpClient, ClientCredentialsTokenConfig config)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient ?? HttpClient.Default;
             _config = config;
         }
 

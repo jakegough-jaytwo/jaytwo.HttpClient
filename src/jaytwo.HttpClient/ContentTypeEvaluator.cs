@@ -32,7 +32,7 @@ namespace jaytwo.HttpClient
 
         public static bool CouldBeJsonContent(HttpResponse httpResponse)
         {
-            return CouldBeJsonContent(httpResponse.Content) || CouldBeJsonContent(httpResponse.BinaryContent);
+            return CouldBeJsonContent(httpResponse.Content) || CouldBeJsonContent(httpResponse.ContentBytes);
         }
 
         public static bool CouldBeJsonContent(string content)
@@ -78,7 +78,7 @@ namespace jaytwo.HttpClient
 
         public static bool CouldBeXmlContent(HttpResponse httpResponse)
         {
-            return CouldBeXmlContent(httpResponse.Content) || CouldBeXmlContent(httpResponse.BinaryContent);
+            return CouldBeXmlContent(httpResponse.Content) || CouldBeXmlContent(httpResponse.ContentBytes);
         }
 
         public static bool CouldBeXmlContent(string content)

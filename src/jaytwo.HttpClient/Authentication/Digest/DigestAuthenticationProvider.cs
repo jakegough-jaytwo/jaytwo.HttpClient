@@ -18,13 +18,13 @@ namespace jaytwo.HttpClient.Authentication.Digest
 
         public DigestAuthenticationProvider(IHttpClient httpClient, string user, string pass)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient ?? HttpClient.Default;
             _username = user;
             _password = pass;
         }
 
         public DigestAuthenticationProvider(string user, string pass)
-            : this(new HttpClient(), user, pass)
+            : this(null, user, pass)
         {
         }
 

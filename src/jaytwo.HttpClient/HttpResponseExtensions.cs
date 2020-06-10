@@ -41,10 +41,10 @@ namespace jaytwo.HttpClient
             {
                 return httpResponse.Content;
             }
-            else if (httpResponse.BinaryContent != null)
+            else if (httpResponse.ContentBytes != null)
             {
                 // TODO: read the headers in case a different encoding is defined
-                return Encoding.UTF8.GetString(httpResponse.BinaryContent, 0, httpResponse.BinaryContent.Length);
+                return Encoding.UTF8.GetString(httpResponse.ContentBytes, 0, httpResponse.ContentBytes.Length);
             }
             else
             {
@@ -66,7 +66,7 @@ namespace jaytwo.HttpClient
             }
             else
             {
-                return httpResponse.BinaryContent;
+                return httpResponse.ContentBytes;
             }
         }
 
@@ -146,7 +146,7 @@ namespace jaytwo.HttpClient
 
             if (header.Any())
             {
-                return header.Single().Value;
+                return header.First().Value; // TODO: care about headers with multiple values
             }
 
             return null;

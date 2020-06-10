@@ -153,7 +153,7 @@ namespace jaytwo.HttpClient.Tests
         public async Task WithPath_before_WithBaseUri()
         {
             // arrange
-            var client = new HttpClient();
+            var client = HttpClient.Default;
 
             // act
             var response = await client.GetAsync(request =>

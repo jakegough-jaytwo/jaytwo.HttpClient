@@ -17,7 +17,7 @@ namespace jaytwo.HttpClient
 
         public string Content { get; set; }
 
-        public byte[] BinaryContent { get; set; }
+        public byte[] ContentBytes { get; set; }
 
         public long ContentLength => Convert.ToInt64(this.GetHeaderValue(Constants.Headers.ContentLength));
 

@@ -16,7 +16,7 @@ namespace jaytwo.HttpClient.Authentication.Token.OpenIdConnect
         private AccessTokenResponse _cachedAccessToken;
 
         public ClientCredentialsTokenProvider(ClientCredentialsTokenConfig config)
-            : this(new HttpClient(), config)
+            : this(null, config)
         {
         }
 

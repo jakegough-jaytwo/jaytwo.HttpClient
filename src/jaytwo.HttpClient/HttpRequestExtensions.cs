@@ -184,9 +184,7 @@ namespace jaytwo.HttpClient
 
         public static HttpRequest WithContentType(this HttpRequest httpRequest, string contentType)
         {
-            httpRequest.ContentType = contentType;
-
-            return httpRequest;
+            return httpRequest.WithHeader(Constants.Headers.ContentType, contentType);
         }
 
         public static HttpRequest WithTimeout(this HttpRequest httpRequest, TimeSpan? timeout)
@@ -265,7 +263,7 @@ namespace jaytwo.HttpClient
         public static HttpRequest WithJsonContent(this HttpRequest httpRequest, object data)
         {
             httpRequest.Content = JsonConvert.SerializeObject(data);
-            httpRequest.ContentType = MediaType.application_json;
+            httpRequest.WithContentType(MediaType.application_json);
 
             return httpRequest;
         }
@@ -273,14 +271,17 @@ namespace jaytwo.HttpClient
         public static HttpRequest WithFormDataContent(this HttpRequest httpRequest, object data)
         {
             httpRequest.Content = QueryString.Serialize(data);
-            httpRequest.ContentType = MediaType.application_x_www_form_urlencoded;
+            httpRequest.WithContentType(MediaType.application_x_www_form_urlencoded);
 
             return httpRequest;
         }
 
         public static HttpRequest WithContent(this HttpRequest httpRequest, HttpContent content)
         {
-            httpRequest.ContentType = content.Headers.ContentType.ToString();
+            foreach (var header in content.Headers)
+            {
+                httpRequest.Headers[header.Key] = header.Value.First(); // TODO: care about headers with multiple values
+            }
 
             if (ContentTypeEvaluator.IsStringContent(content))
             {
@@ -298,6 +299,18 @@ namespace jaytwo.HttpClient
         {
             httpRequest.HttpVersion = httpVersion;
             return httpRequest;
+        }
+
+        public static string GetHeaderValue(this HttpRequest httpResponse, string key)
+        {
+            var header = httpResponse.Headers?.Where(x => string.Equals(x.Key, key, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (header.Any())
+            {
+                return header.First().Value; // TODO: care about headers with multiple values
+            }
+
+            return null;
         }
 
         public static Task<HttpResponse> SendWith(this HttpRequest httpRequest, Func<HttpRequest, Task<HttpResponse>> sendDelegate) => sendDelegate.Invoke(httpRequest);

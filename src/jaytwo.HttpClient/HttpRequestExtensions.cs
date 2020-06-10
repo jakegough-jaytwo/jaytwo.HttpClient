@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using jaytwo.AsyncHelper;
 using jaytwo.FluentUri;
 using jaytwo.HttpClient.Authentication;
 using jaytwo.HttpClient.Authentication.Basic;
@@ -273,6 +274,22 @@ namespace jaytwo.HttpClient
         {
             httpRequest.Content = QueryString.Serialize(data);
             httpRequest.ContentType = MediaType.application_x_www_form_urlencoded;
+
+            return httpRequest;
+        }
+
+        public static HttpRequest WithContent(this HttpRequest httpRequest, HttpContent content)
+        {
+            httpRequest.ContentType = content.Headers.ContentType.ToString();
+
+            if (ContentTypeEvaluator.IsStringContent(content))
+            {
+                httpRequest.BinaryContent = content.ReadAsByteArrayAsync().AwaitSynchronously();
+            }
+            else
+            {
+                httpRequest.Content = content.ReadAsStringAsync().AwaitSynchronously();
+            }
 
             return httpRequest;
         }

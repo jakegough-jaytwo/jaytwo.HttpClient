@@ -19,9 +19,9 @@ namespace jaytwo.HttpClient
 
         public byte[] BinaryContent { get; set; }
 
-        public long ContentLength { get; set; }
+        public long ContentLength => Convert.ToInt64(this.GetHeaderValue(Constants.Headers.ContentLength));
 
-        public string ContentType { get; set; }
+        public string ContentType => this.GetHeaderValue(Constants.Headers.ContentType);
 
         public TimeSpan Elapsed { get; set; }
     }

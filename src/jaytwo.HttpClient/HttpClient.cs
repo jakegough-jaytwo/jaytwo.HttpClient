@@ -96,8 +96,6 @@ namespace jaytwo.HttpClient
                 {
                     Request = request,
                     StatusCode = httpResponseMessage.StatusCode,
-                    ContentType = httpResponseMessage.Content?.Headers?.ContentType?.ToString(),
-                    ContentLength = httpResponseMessage.Content?.Headers?.ContentLength ?? 0,
                     Headers = GetHeaders(httpResponseMessage),
                     Elapsed = stopwatch.Elapsed,
                 };

@@ -52,9 +52,9 @@ namespace jaytwo.HttpClient.Authentication.OAuth10a
                 OauthVersion = OauthVersion,
             };
 
-            if (request.ContentType == MediaType.application_x_www_form_urlencoded)
+            if (request.ContentType == MediaType.application_x_www_form_urlencoded && request.Content is string)
             {
-                calculator.BodyParameters = QueryString.Deserialize(request.Content).ToDictionary(x => x.Key, x => x.Value.First()); // TODO: care about the edge case where the URL may contain multiple parameters of the same name
+                calculator.BodyParameters = QueryString.Deserialize((string)request.Content).ToDictionary(x => x.Key, x => x.Value.First()); // TODO: care about the edge case where the URL may contain multiple parameters of the same name
             }
 
             var authorizationHeaderValue = calculator.GetAuthorizationHeaderValue();

@@ -38,15 +38,15 @@ namespace jaytwo.HttpClient.Authentication.Digest
 
         public static string GetHA2(string qop, string uri, string method, HttpRequest request)
         {
-            if (string.IsNullOrEmpty(qop) || qop == Qop.Auth)
-            {
-                return GetMd5(method, uri);
-            }
-            else if (qop == Qop.AuthInt) // super rare
-            {
-                var bodyBytes = request.BinaryContent ?? Encoding.UTF8.GetBytes(request.Content ?? string.Empty);
-                return GetMd5(method, uri, GetMd5(bodyBytes));
-            }
+            //if (string.IsNullOrEmpty(qop) || qop == Qop.Auth)
+            //{
+            //    return GetMd5(method, uri);
+            //}
+            //else if (qop == Qop.AuthInt) // super rare
+            //{
+            //    var bodyBytes = request.BinaryContent ?? Encoding.UTF8.GetBytes(request.Content ?? string.Empty);
+            //    return GetMd5(method, uri, GetMd5(bodyBytes));
+            //}
 
             throw new NotSupportedException("Unsupported qop directive: " + qop);
         }

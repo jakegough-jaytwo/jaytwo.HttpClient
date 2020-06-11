@@ -1,56 +1,60 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using jaytwo.HttpClient.Authentication;
 
 namespace jaytwo.HttpClient
 {
-    public class HttpRequest : HttpRequestBase
+    public class HttpContentRequest : HttpRequestBase, IDisposable
     {
-        public HttpRequest()
+        public HttpContentRequest()
         {
         }
 
-        public HttpRequest(string pathOrUri)
+        public HttpContentRequest(string pathOrUri)
             : base(pathOrUri)
         {
         }
 
-        public HttpRequest(Uri uri)
+        public HttpContentRequest(Uri uri)
             : base(uri)
         {
         }
 
-        public HttpRequest(HttpMethod method)
+        public HttpContentRequest(HttpMethod method)
             : base(method)
         {
         }
 
-        public HttpRequest(HttpMethod method, string uri)
+        public HttpContentRequest(HttpMethod method, string uri)
             : base(method, uri)
         {
         }
 
-        public HttpRequest(HttpMethod method, Uri uri)
+        public HttpContentRequest(HttpMethod method, Uri uri)
             : base(method, uri)
         {
         }
 
-        public new string Content
+        public new HttpContent Content
         {
             get
             {
-                return (string)base.Content;
+                return (HttpContent)base.Content;
             }
 
             set
             {
                 base.Content = value;
             }
+        }
+
+        public void Dispose()
+        {
+            Content?.Dispose();
         }
     }
 }

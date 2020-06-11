@@ -1,50 +1,49 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using jaytwo.HttpClient.Authentication;
 
 namespace jaytwo.HttpClient
 {
-    public class HttpRequest : HttpRequestBase
+    public class HttpByteArrayRequest : HttpRequestBase
     {
-        public HttpRequest()
+        public HttpByteArrayRequest()
         {
         }
 
-        public HttpRequest(string pathOrUri)
+        public HttpByteArrayRequest(string pathOrUri)
             : base(pathOrUri)
         {
         }
 
-        public HttpRequest(Uri uri)
+        public HttpByteArrayRequest(Uri uri)
             : base(uri)
         {
         }
 
-        public HttpRequest(HttpMethod method)
+        public HttpByteArrayRequest(HttpMethod method)
             : base(method)
         {
         }
 
-        public HttpRequest(HttpMethod method, string uri)
+        public HttpByteArrayRequest(HttpMethod method, string uri)
             : base(method, uri)
         {
         }
 
-        public HttpRequest(HttpMethod method, Uri uri)
+        public HttpByteArrayRequest(HttpMethod method, Uri uri)
             : base(method, uri)
         {
         }
 
-        public new string Content
+        public new byte[] Content
         {
             get
             {
-                return (string)base.Content;
+                return (byte[])base.Content;
             }
 
             set

@@ -43,25 +43,25 @@ namespace jaytwo.HttpClient.Tests.Authentication.Digest
             Assert.Equal("39aff3a2bab6126f332b942af96d3366", ha1);
         }
 
-        [Fact]
-        public void GetHA2_auth_int_binary_content()
-        {
-            // arrange
-            var qop = "auth-int";
-            var url = "/dir/index.html";
-            var method = "GET";
+        //[Fact]
+        //public void GetHA2_auth_int_binary_content()
+        //{
+        //    // arrange
+        //    var qop = "auth-int";
+        //    var url = "/dir/index.html";
+        //    var method = "GET";
 
-            var httpRequest = new HttpRequest()
-            {
-                BinaryContent = Encoding.UTF8.GetBytes("Hello World"),
-            };
+        //    var httpRequest = new HttpRequest()
+        //    {
+        //        BinaryContent = Encoding.UTF8.GetBytes("Hello World"),
+        //    };
 
-            // act
-            var ha1 = DigestCalculator.GetHA2(qop, url, method, httpRequest);
+        //    // act
+        //    var ha1 = DigestCalculator.GetHA2(qop, url, method, httpRequest);
 
-            // assert
-            Assert.Equal("ce4bada06e032f3a3fd11b2eee60c8e8", ha1);
-        }
+        //    // assert
+        //    Assert.Equal("ce4bada06e032f3a3fd11b2eee60c8e8", ha1);
+        //}
 
         [Fact]
         public void GetHA2_auth_int_string_content()

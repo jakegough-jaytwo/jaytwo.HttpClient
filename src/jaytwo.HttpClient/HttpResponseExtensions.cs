@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using jaytwo.HttpClient.Authentication.Token.OpenIdConnect;
 using jaytwo.HttpClient.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -13,7 +14,8 @@ namespace jaytwo.HttpClient
 {
     public static class HttpResponseExtensions
     {
-        public static bool IsExpectedStatusCode(this HttpResponse httpResponse)
+        public static bool IsExpectedStatusCode<TRequest>(this HttpResponse<TRequest> httpResponse)
+            where TRequest : HttpRequestBase
         {
             if (httpResponse?.Request?.ExpectedStatusCodes?.Any() ?? false)
             {
@@ -25,7 +27,8 @@ namespace jaytwo.HttpClient
             }
         }
 
-        public static HttpResponse EnsureExpectedStatusCode(this HttpResponse httpResponse)
+        public static HttpResponse<TRequest> EnsureExpectedStatusCode<TRequest>(this HttpResponse<TRequest> httpResponse)
+            where TRequest : HttpRequestBase
         {
             if (!IsExpectedStatusCode(httpResponse))
             {
@@ -35,7 +38,8 @@ namespace jaytwo.HttpClient
             return httpResponse;
         }
 
-        public static string AsString(this HttpResponse httpResponse)
+        public static string AsString<TRequest>(this HttpResponse<TRequest> httpResponse)
+            where TRequest : HttpRequestBase
         {
             if (httpResponse.Content != null)
             {
@@ -52,13 +56,15 @@ namespace jaytwo.HttpClient
             }
         }
 
-        public static async Task<string> AsString(this Task<HttpResponse> httpResponseTask)
+        public static async Task<string> AsString<TRequest>(this Task<HttpResponse<TRequest>> httpResponseTask)
+            where TRequest : HttpRequestBase
         {
             var httpResponse = await httpResponseTask;
             return httpResponse.AsString();
         }
 
-        public static byte[] AsByteArray(this HttpResponse httpResponse)
+        public static byte[] AsByteArray<TRequest>(this HttpResponse<TRequest> httpResponse)
+            where TRequest : HttpRequestBase
         {
             if (httpResponse.Content != null)
             {
@@ -70,24 +76,28 @@ namespace jaytwo.HttpClient
             }
         }
 
-        public static async Task<byte[]> AsByteArray(this Task<HttpResponse> httpResponseTask)
+        public static async Task<byte[]> AsByteArray<TRequest>(this Task<HttpResponse<TRequest>> httpResponseTask)
+            where TRequest : HttpRequestBase
         {
             var httpResponse = await httpResponseTask;
             return httpResponse.AsByteArray();
         }
 
-        public static T AsAnonymousType<T>(this HttpResponse httpResponse, T anonymousTypeObject)
+        public static T AsAnonymousType<T, TRequest>(this HttpResponse<TRequest> httpResponse, T anonymousTypeObject)
+            where TRequest : HttpRequestBase
         {
-            return httpResponse.As<T>();
+            return httpResponse.As<T, TRequest>();
         }
 
-        public static async Task<T> AsAnonymousType<T>(this Task<HttpResponse> httpResponseTask, T anonymousTypeObject)
+        public static async Task<T> AsAnonymousType<T, TRequest>(this Task<HttpResponse<TRequest>> httpResponseTask, T anonymousTypeObject)
+            where TRequest : HttpRequestBase
         {
             var httpResponse = await httpResponseTask;
-            return httpResponse.AsAnonymousType<T>(anonymousTypeObject);
+            return httpResponse.AsAnonymousType(anonymousTypeObject);
         }
 
-        public static T As<T>(this HttpResponse httpResponse)
+        public static T As<T, TRequest>(this HttpResponse<TRequest> httpResponse)
+            where TRequest : HttpRequestBase
         {
             return AutoDeserializeAs(
                 httpResponse,
@@ -95,15 +105,19 @@ namespace jaytwo.HttpClient
                 xmlDelegate: DeserializeXmlAs<T>);
         }
 
-        public static async Task<T> As<T>(this Task<HttpResponse> httpResponseTask)
+        public static async Task<T> As<T, TRequest>(this Task<HttpResponse<TRequest>> httpResponseTask)
+            where TRequest : HttpRequestBase
         {
             var httpResponse = await httpResponseTask;
-            return httpResponse.As<T>();
+            return httpResponse.As<T, TRequest>();
         }
 
-        public static IDictionary<string, object> AsDictionary(this HttpResponse httpResponse) => AsDictionary(httpResponse, null);
+        public static IDictionary<string, object> AsDictionary<TRequest>(this HttpResponse<TRequest> httpResponse)
+            where TRequest : HttpRequestBase
+            => AsDictionary(httpResponse, null);
 
-        public static IDictionary<string, object> AsDictionary(this HttpResponse httpResponse, StringComparer keyComparer)
+        public static IDictionary<string, object> AsDictionary<TRequest>(this HttpResponse<TRequest> httpResponse, StringComparer keyComparer)
+            where TRequest : HttpRequestBase
         {
             return AutoDeserializeAs(
                 httpResponse,
@@ -111,36 +125,42 @@ namespace jaytwo.HttpClient
                 xmlDelegate: x => XmlAsDictionary(x, keyComparer));
         }
 
-        public static async Task<IDictionary<string, object>> AsDictionary(this Task<HttpResponse> httpResponseTask)
+        public static async Task<IDictionary<string, object>> AsDictionary<TRequest>(this Task<HttpResponse<TRequest>> httpResponseTask)
+            where TRequest : HttpRequestBase
         {
             var httpResponse = await httpResponseTask;
             return httpResponse.AsDictionary();
         }
 
-        public static T ParseWith<T>(this HttpResponse httpResponse, Func<HttpResponse, T> parseDelegate)
+        public static T ParseWith<T, TRequest>(this HttpResponse<TRequest> httpResponse, Func<HttpResponse<TRequest>, T> parseDelegate)
+            where TRequest : HttpRequestBase
         {
             return parseDelegate.Invoke(httpResponse);
         }
 
-        public static async Task<T> ParseWith<T>(this Task<HttpResponse> httpResponseTask, Func<HttpResponse, T> parseDelegate)
+        public static async Task<T> ParseWith<T, TRequest>(this Task<HttpResponse<TRequest>> httpResponseTask, Func<HttpResponse<TRequest>, T> parseDelegate)
+            where TRequest : HttpRequestBase
         {
             var httpResponse = await httpResponseTask;
-            return httpResponse.ParseWith<T>(parseDelegate);
+            return httpResponse.ParseWith(parseDelegate);
         }
 
-        public static T ParseWith<T>(this HttpResponse httpResponse, Func<string, T> parseDelegate)
+        public static T ParseWith<T, TRequest>(this HttpResponse<TRequest> httpResponse, Func<string, T> parseDelegate)
+            where TRequest : HttpRequestBase
         {
             var asString = httpResponse.AsString();
             return parseDelegate.Invoke(asString);
         }
 
-        public static async Task<T> ParseWith<T>(this Task<HttpResponse> httpResponseTask, Func<string, T> parseDelegate)
+        public static async Task<T> ParseWith<T, TRequest>(this Task<HttpResponse<TRequest>> httpResponseTask, Func<string, T> parseDelegate)
+            where TRequest : HttpRequestBase
         {
             var httpResponse = await httpResponseTask;
-            return httpResponse.ParseWith<T>(parseDelegate);
+            return httpResponse.ParseWith(parseDelegate);
         }
 
-        public static string GetHeaderValue(this HttpResponse httpResponse, string key)
+        public static string GetHeaderValue<TRequest>(this HttpResponse<TRequest> httpResponse, string key)
+            where TRequest : HttpRequestBase
         {
             var header = httpResponse.Headers?.Where(x => string.Equals(x.Key, key, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -152,7 +172,8 @@ namespace jaytwo.HttpClient
             return null;
         }
 
-        internal static T AutoDeserializeAs<T>(HttpResponse httpResponse, Func<string, T> jsonDelegate, Func<string, T> xmlDelegate)
+        internal static T AutoDeserializeAs<T, TRequest>(this HttpResponse<TRequest> httpResponse, Func<string, T> jsonDelegate, Func<string, T> xmlDelegate)
+            where TRequest : HttpRequestBase
         {
             bool isJson = false;
             bool isXml = false;

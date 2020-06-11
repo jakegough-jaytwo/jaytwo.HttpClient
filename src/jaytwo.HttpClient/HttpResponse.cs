@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace jaytwo.HttpClient
 {
-    public class HttpResponse
+    public class HttpResponse<TRequest>
+        where TRequest : HttpRequestBase
     {
-        public HttpRequest Request { get; set; }
+        public TRequest Request { get; set; }
 
         public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
 

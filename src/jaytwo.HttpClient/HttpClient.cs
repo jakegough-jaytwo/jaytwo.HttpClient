@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using jaytwo.HttpClient.Authentication;
+using jaytwo.HttpClient.Exceptions;
 
 namespace jaytwo.HttpClient
 {
@@ -48,9 +50,12 @@ namespace jaytwo.HttpClient
 
         public Version HttpVersion { get; set; } = new Version(1, 1);
 
-        public Task<HttpResponse> SendAsync(HttpRequest request) => SendAsync(request, CancellationToken.None);
+        public Task<HttpResponse> SendAsync<TRequest>(TRequest request)
+            where TRequest : HttpRequestBase
+            => SendAsync(request, CancellationToken.None);
 
-        public async virtual Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
+        public async virtual Task<HttpResponse> SendAsync<TRequest>(TRequest request, CancellationToken cancellationToken)
+            where TRequest : HttpRequestBase
         {
             if (request.Method == null)
             {
@@ -84,39 +89,49 @@ namespace jaytwo.HttpClient
 
             foreach (var header in request.Headers)
             {
-                httpRequestMessage.Headers.Add(header.Key, header.Value);
+                httpRequestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }
 
             var timeout = request.Timeout ?? Timeout ?? DefaultTimeout;
             var stopwatch = Stopwatch.StartNew();
-            using (httpRequestMessage)
-            using (var httpResponseMessage = await SendWithTimeoutAsync(httpRequestMessage, cancellationToken, timeout))
+
+            try
             {
-                stopwatch.Stop();
-
-                var response = new HttpResponse()
+                using (var httpResponseMessage = await SendWithTimeoutAsync(httpRequestMessage, cancellationToken, timeout))
                 {
-                    Request = request,
-                    StatusCode = httpResponseMessage.StatusCode,
-                    Headers = GetHeaders(httpResponseMessage),
-                    Elapsed = stopwatch.Elapsed,
-                };
+                    stopwatch.Stop();
 
-                if (httpResponseMessage.Content != null)
-                {
-                    if (ContentTypeEvaluator.IsStringContent(httpResponseMessage.Content))
+                    var response = new HttpResponse()
                     {
-                        response.Content = await httpResponseMessage.Content.ReadAsStringAsync();
-                    }
-                    else
+                        Request = request,
+                        StatusCode = httpResponseMessage.StatusCode,
+                        Headers = GetHeaders(httpResponseMessage),
+                        Elapsed = stopwatch.Elapsed,
+                    };
+
+                    if (httpResponseMessage.Content != null)
                     {
-                        response.ContentBytes = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+                        if (ContentTypeEvaluator.IsStringContent(httpResponseMessage.Content))
+                        {
+                            response.Content = await httpResponseMessage.Content.ReadAsStringAsync();
+                        }
+                        else
+                        {
+                            response.ContentBytes = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+                        }
                     }
+
+                    response.EnsureExpectedStatusCode();
+
+                    return response;
                 }
-
-                response.EnsureExpectedStatusCode();
-
-                return response;
+            }
+            finally
+            {
+                if (!(request is IDisposable))
+                {
+                    httpRequestMessage.Dispose();
+                }
             }
         }
 
@@ -137,17 +152,30 @@ namespace jaytwo.HttpClient
             return result;
         }
 
-        private static HttpContent GetRequestHttpContent(HttpRequest request)
+        private static HttpContent GetRequestHttpContent<TRequest>(TRequest request)
+            where TRequest : HttpRequestBase
         {
             HttpContent content = null;
 
-            if (request.BinaryContent != null)
+            if (request.Content is string)
             {
-                content = new ByteArrayContent(request.BinaryContent);
+                content = new StringContent((string)request.Content, Encoding.UTF8, request.ContentType);
+            }
+            else if (request.Content is byte[])
+            {
+                content = new ByteArrayContent((byte[])request.Content);
+            }
+            else if (request.Content is Stream)
+            {
+                content = new StreamContent((Stream)request.Content);
+            }
+            else if (request.Content is HttpContent)
+            {
+                content = (HttpContent)request.Content;
             }
             else if (request.Content != null)
             {
-                content = new StringContent(request.Content, Encoding.UTF8, request.ContentType);
+                throw new NotSupportedException($"Unsupported content type conversion from: {request.Content.GetType()}.  Content must be either string, byte[], Stream, or HttpContent.");
             }
 
             return content;
@@ -165,20 +193,33 @@ namespace jaytwo.HttpClient
             }
         }
 
-        private Task<HttpResponseMessage> SendWithTimeoutAsync(
+        private async Task<HttpResponseMessage> SendWithTimeoutAsync(
             HttpRequestMessage httpRequestMessage,
             CancellationToken cancellationToken,
             TimeSpan timeout)
         {
+            var systemHttpClient = SystemHttpClient ?? _defaultSystemHttpClient;
+
             using (var timeoutCancellationTokenSource = new CancellationTokenSource(timeout))
             using (var combinedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token))
             {
-                var systemHttpClient = SystemHttpClient ?? _defaultSystemHttpClient;
+                try
+                {
+                    var response = await systemHttpClient.SendAsync(
+                        request: httpRequestMessage,
+                        completionOption: HttpCompletionOption.ResponseContentRead,
+                        cancellationToken: timeoutCancellationTokenSource.Token);
 
-                return systemHttpClient.SendAsync(
-                    request: httpRequestMessage,
-                    completionOption: HttpCompletionOption.ResponseContentRead,
-                    cancellationToken: combinedCancellationTokenSource.Token);
+                    return response;
+                }
+                catch (TaskCanceledException taskCanceledException) when (timeoutCancellationTokenSource.IsCancellationRequested)
+                {
+                    throw new RequestTimedOutException(taskCanceledException);
+                }
+                catch
+                {
+                    throw;
+                }
             }
         }
     }

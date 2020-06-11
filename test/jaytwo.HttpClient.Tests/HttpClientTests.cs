@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using jaytwo.HttpClient.Constants;
@@ -370,6 +372,160 @@ namespace jaytwo.HttpClient.Tests
         }
 
         [Fact]
+        public async Task HttpContentRequest()
+        {
+            // arrange
+            var payload = "hello world";
+
+            using (var content = new StringContent(payload))
+            {
+                var request = new HttpContentRequest()
+                    .WithMethod(HttpMethod.Get)
+                    .WithPath("/anything")
+                    .WithContent(content);
+
+                // act
+                var response = await _httpClient.SendAsync(request);
+
+                // assert
+                var prototype = new
+                {
+                    data = default(string),
+                };
+                var responseData = response.AsAnonymousType(prototype).data;
+
+                Assert.Equal(payload, responseData);
+            }
+        }
+
+        [Fact]
+        public async Task HttpRequest_with_HttpContent()
+        {
+            // arrange
+            var payload = "hello world";
+
+            using (var content = new StringContent(payload))
+            {
+                var request = new HttpRequest()
+                    .WithMethod(HttpMethod.Get)
+                    .WithPath("/anything")
+                    .WithContent(content);
+
+                // act
+                var response = await _httpClient.SendAsync(request);
+
+                // assert
+                var prototype = new
+                {
+                    data = default(string),
+                };
+                var responseData = response.AsAnonymousType(prototype).data;
+
+                Assert.Equal(payload, responseData);
+            }
+        }
+
+        [Fact]
+        public async Task HttpStreamRequest()
+        {
+            // arrange
+            var payload = "hello world";
+
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(payload)))
+            {
+                var request = new HttpStreamRequest()
+                    .WithMethod(HttpMethod.Get)
+                    .WithPath("/anything")
+                    .WithContent(stream);
+
+                // act
+                var response = await _httpClient.SendAsync(request);
+
+                // assert
+                var prototype = new
+                {
+                    data = default(string),
+                };
+                var responseData = response.AsAnonymousType(prototype).data;
+
+                Assert.Equal(payload, responseData);
+            }
+        }
+
+        [Fact]
+        public async Task HttpRequest_with_stream_content()
+        {
+            // arrange
+            var payload = "hello world";
+
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(payload)))
+            {
+                var request = new HttpRequest()
+                    .WithMethod(HttpMethod.Get)
+                    .WithPath("/anything")
+                    .WithContent(stream);
+
+                // act
+                var response = await _httpClient.SendAsync(request);
+
+                // assert
+                var prototype = new
+                {
+                    data = default(string),
+                };
+                var responseData = response.AsAnonymousType(prototype).data;
+
+                Assert.Equal(payload, responseData);
+            }
+        }
+
+        [Fact]
+        public async Task HttpByteArrayRequest()
+        {
+            // arrange
+            var payload = "hello world";
+            var request = new HttpByteArrayRequest()
+                .WithMethod(HttpMethod.Get)
+                .WithPath("/anything")
+                .WithContent(Encoding.UTF8.GetBytes(payload));
+
+            // act
+            var response = await _httpClient.SendAsync(request);
+
+            // assert
+            var prototype = new
+            {
+                data = default(string),
+            };
+            var responseData = response.AsAnonymousType(prototype).data;
+
+            Assert.Equal(payload, responseData);
+        }
+
+        [Fact]
+        public async Task HttpRequest_with_byte_array_content()
+        {
+            // arrange
+            var payload = "hello world";
+            var request = new HttpByteArrayRequest()
+                .WithMethod(HttpMethod.Get)
+                .WithPath("/anything")
+                .WithContent(Encoding.UTF8.GetBytes(payload));
+
+            // act
+            var response = await _httpClient.SendAsync(request);
+
+            // assert
+            var prototype = new
+            {
+                data = default(string),
+            };
+            var responseData = response.AsAnonymousType(prototype).data;
+
+            Assert.Equal(payload, responseData);
+        }
+
+        [Fact]
         public async Task Get_json_Works()
         {
             // arrange
@@ -452,6 +608,41 @@ namespace jaytwo.HttpClient.Tests
             Assert.NotNull(actual["slideshow"]);
             //Assert.NotEmpty(actual.slideshow.slide);
             //Assert.NotEmpty(actual.slideshow.slide.First().title);
+        }
+
+        [Fact]
+        public async Task Timeout_Works()
+        {
+            // arrange
+            var delaySeconds = 1;
+            var timeoutSeconds = 0.5;
+
+            var client = new HttpClient()
+                .WithBaseUri("http://httpbin.org")
+                .WithTimeout(TimeSpan.FromSeconds(timeoutSeconds));
+
+            var request = new HttpRequest()
+                .WithMethod(HttpMethod.Post)
+                .WithPath("/delay/{0}", delaySeconds);
+
+            // act & assert
+            var exception = await Assert.ThrowsAsync<RequestTimedOutException>(() => client.SendAsync(request));
+        }
+
+        [Fact]
+        public async Task Request_Timeout_Works()
+        {
+            // arrange
+            var delaySeconds = 1;
+            var timeoutSeconds = 0.5;
+
+            var request = new HttpRequest()
+                .WithMethod(HttpMethod.Post)
+                .WithTimeout(TimeSpan.FromSeconds(timeoutSeconds))
+                .WithPath("/delay/{0}", delaySeconds);
+
+            // act & assert
+            var exception = await Assert.ThrowsAsync<RequestTimedOutException>(() => _httpClient.SendAsync(request));
         }
     }
 }

@@ -8,6 +8,7 @@ namespace jaytwo.HttpClient
 {
     public interface IHttpClient
     {
-        Task<HttpResponse> SendAsync(HttpRequest request);
+        Task<HttpResponse> SendAsync<TRequest>(TRequest request)
+            where TRequest : HttpRequestBase;
     }
 }

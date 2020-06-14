@@ -44,7 +44,7 @@ namespace jaytwo.HttpClient.Authentication.Digest
             }
             else if (qop == Qop.AuthInt) // super rare
             {
-                var bodyBytes = request.BinaryContent ?? Encoding.UTF8.GetBytes(request.Content ?? string.Empty);
+                var bodyBytes = request.ContentBytes ?? Encoding.UTF8.GetBytes(request.Content ?? string.Empty);
                 return GetMd5(method, uri, GetMd5(bodyBytes));
             }
 

@@ -141,9 +141,9 @@ namespace jaytwo.HttpClient
         {
             HttpContent content = null;
 
-            if (request.BinaryContent != null)
+            if (request.ContentBytes != null)
             {
-                content = new ByteArrayContent(request.BinaryContent);
+                content = new ByteArrayContent(request.ContentBytes);
             }
             else if (request.Content != null)
             {

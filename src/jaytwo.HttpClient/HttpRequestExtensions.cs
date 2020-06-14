@@ -285,7 +285,7 @@ namespace jaytwo.HttpClient
 
             if (ContentTypeEvaluator.IsStringContent(content))
             {
-                httpRequest.BinaryContent = content.ReadAsByteArrayAsync().AwaitSynchronously();
+                httpRequest.ContentBytes = content.ReadAsByteArrayAsync().AwaitSynchronously();
             }
             else
             {

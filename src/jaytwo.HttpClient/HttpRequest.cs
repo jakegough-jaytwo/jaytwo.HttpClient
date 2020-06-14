@@ -52,7 +52,7 @@ namespace jaytwo.HttpClient
 
         public string Content { get; set; }
 
-        public byte[] BinaryContent { get; set; }
+        public byte[] ContentBytes { get; set; }
 
         public Version HttpVersion { get; set; }
 

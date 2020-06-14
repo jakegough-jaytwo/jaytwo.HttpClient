@@ -53,7 +53,7 @@ namespace jaytwo.HttpClient.Tests.Authentication.Digest
 
             var httpRequest = new HttpRequest()
             {
-                BinaryContent = Encoding.UTF8.GetBytes("Hello World"),
+                ContentBytes = Encoding.UTF8.GetBytes("Hello World"),
             };
 
             // act

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using jaytwo.HttpClient.Authentication;
+using jaytwo.HttpClient.Constants;
 
 namespace jaytwo.HttpClient
 {
@@ -84,7 +85,21 @@ namespace jaytwo.HttpClient
 
             foreach (var header in request.Headers)
             {
-                httpRequestMessage.Headers.Add(header.Key, header.Value);
+                if (header.Key == Constants.Headers.ContentType || header.Key == Constants.Headers.ContentLength)
+                {
+                    // do nothing, it was added when creating the content
+                }
+                else
+                {
+                    try
+                    {
+                        httpRequestMessage.Headers.Add(header.Key, header.Value);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new NotSupportedException($"Oops! Can't add request header: {header.Key}", ex);
+                    }
+                }
             }
 
             var timeout = request.Timeout ?? Timeout ?? DefaultTimeout;

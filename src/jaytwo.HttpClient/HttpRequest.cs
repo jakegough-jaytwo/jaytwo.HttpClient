@@ -48,6 +48,8 @@ namespace jaytwo.HttpClient
 
         public HttpMethod Method { get; set; }
 
+        public bool PreserveResponseAsHttpContent { get; set; }
+
         public string ContentType => this.GetHeaderValue(Constants.Headers.ContentType);
 
         public string Content { get; set; }

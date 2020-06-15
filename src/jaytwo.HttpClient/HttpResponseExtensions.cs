@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using jaytwo.AsyncHelper;
 using jaytwo.HttpClient.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -39,17 +41,27 @@ namespace jaytwo.HttpClient
         {
             if (httpResponse.Content != null)
             {
-                return httpResponse.Content;
+                if (httpResponse.Content is string)
+                {
+                    return (string)httpResponse.Content;
+                }
+                else if (httpResponse.Content is byte[])
+                {
+                    // TODO: read the headers in case a different encoding is defined
+                    var asBytes = (byte[])httpResponse.Content;
+                    return Encoding.UTF8.GetString(asBytes, 0, asBytes.Length);
+                }
+                else if (httpResponse.Content is HttpContent)
+                {
+                    return httpResponse.AsHttpContent().ReadAsStringAsync().AwaitSynchronously();
+                }
+                else
+                {
+                    throw new NotSupportedException($"Unsupported content object type: {httpResponse.Content.GetType()}");
+                }
             }
-            else if (httpResponse.ContentBytes != null)
-            {
-                // TODO: read the headers in case a different encoding is defined
-                return Encoding.UTF8.GetString(httpResponse.ContentBytes, 0, httpResponse.ContentBytes.Length);
-            }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public static async Task<string> AsString(this Task<HttpResponse> httpResponseTask)
@@ -62,12 +74,27 @@ namespace jaytwo.HttpClient
         {
             if (httpResponse.Content != null)
             {
-                return Encoding.UTF8.GetBytes(httpResponse.Content);
+                if (httpResponse.Content is byte[])
+                {
+                    return (byte[])httpResponse.Content;
+                }
+                else if (httpResponse.Content is string)
+                {
+                    // TODO: read the headers in case a different encoding is defined
+                    var asString = (string)httpResponse.Content;
+                    return Encoding.UTF8.GetBytes(asString);
+                }
+                else if (httpResponse.Content is HttpContent)
+                {
+                    return httpResponse.AsHttpContent().ReadAsByteArrayAsync().AwaitSynchronously();
+                }
+                else
+                {
+                    throw new NotSupportedException($"Unsupported content object type: {httpResponse.Content.GetType()}");
+                }
             }
-            else
-            {
-                return httpResponse.ContentBytes;
-            }
+
+            return null;
         }
 
         public static async Task<byte[]> AsByteArray(this Task<HttpResponse> httpResponseTask)
@@ -81,6 +108,36 @@ namespace jaytwo.HttpClient
             return httpResponse.As<T>();
         }
 
+        public static async Task<HttpContent> AsHttpContent(this Task<HttpResponse> httpResponseTask)
+        {
+            var httpResponse = await httpResponseTask;
+            return httpResponse.AsHttpContent();
+        }
+
+        public static HttpContent AsHttpContent(this HttpResponse httpResponse)
+        {
+            var asHttpContent = httpResponse.Content as HttpContent;
+            asHttpContent?.LoadIntoBufferAsync().AwaitSynchronously(); // TODO: only load into buffer if under a certain size
+
+            if (asHttpContent == null)
+            {
+                throw new InvalidOperationException("Content not preserved as HttpContent.");
+            }
+
+            return asHttpContent;
+        }
+
+        public static async Task<Stream> AsStream(this Task<HttpResponse> httpResponseTask)
+        {
+            var httpResponse = await httpResponseTask;
+            return httpResponse.AsStream();
+        }
+
+        public static Stream AsStream(this HttpResponse httpResponse)
+        {
+            return httpResponse.AsHttpContent().ReadAsStreamAsync().AwaitSynchronously();
+        }
+
         public static async Task<T> AsAnonymousType<T>(this Task<HttpResponse> httpResponseTask, T anonymousTypeObject)
         {
             var httpResponse = await httpResponseTask;
@@ -89,6 +146,23 @@ namespace jaytwo.HttpClient
 
         public static T As<T>(this HttpResponse httpResponse)
         {
+            if (typeof(T) == typeof(string))
+            {
+                return (T)(object)httpResponse.AsString();
+            }
+            else if (typeof(T) == typeof(byte[]))
+            {
+                return (T)(object)httpResponse.AsByteArray();
+            }
+            else if (typeof(T) == typeof(Stream))
+            {
+                return (T)(object)httpResponse.AsStream();
+            }
+            else if (typeof(T) == typeof(HttpContent))
+            {
+                return (T)(object)httpResponse.AsHttpContent();
+            }
+
             return AutoDeserializeAs(
                 httpResponse,
                 jsonDelegate: DeserializeJsonAs<T>,

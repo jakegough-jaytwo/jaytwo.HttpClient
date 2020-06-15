@@ -105,8 +105,8 @@ namespace jaytwo.HttpClient
             var timeout = request.Timeout ?? Timeout ?? DefaultTimeout;
             var stopwatch = Stopwatch.StartNew();
             using (httpRequestMessage)
-            using (var httpResponseMessage = await SendWithTimeoutAsync(httpRequestMessage, cancellationToken, timeout))
             {
+                var httpResponseMessage = await SendWithTimeoutAsync(httpRequestMessage, cancellationToken, timeout);
                 stopwatch.Stop();
 
                 var response = new HttpResponse()
@@ -117,16 +117,25 @@ namespace jaytwo.HttpClient
                     Elapsed = stopwatch.Elapsed,
                 };
 
-                if (httpResponseMessage.Content != null)
+                if (request.PreserveResponseAsHttpContent && httpResponseMessage.Content != null)
                 {
-                    if (ContentTypeEvaluator.IsStringContent(httpResponseMessage.Content))
+                    response.Content = httpResponseMessage.Content;
+                }
+                else
+                {
+                    if (httpResponseMessage.Content != null)
                     {
-                        response.Content = await httpResponseMessage.Content.ReadAsStringAsync();
+                        if (ContentTypeEvaluator.IsStringContent(httpResponseMessage.Content))
+                        {
+                            response.Content = await httpResponseMessage.Content.ReadAsStringAsync();
+                        }
+                        else
+                        {
+                            response.Content = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+                        }
                     }
-                    else
-                    {
-                        response.ContentBytes = await httpResponseMessage.Content.ReadAsByteArrayAsync();
-                    }
+
+                    httpResponseMessage.Dispose();
                 }
 
                 response.EnsureExpectedStatusCode();

@@ -15,9 +15,7 @@ namespace jaytwo.HttpClient
 
         public HttpStatusCode StatusCode { get; set; }
 
-        public string Content { get; set; }
-
-        public byte[] ContentBytes { get; set; }
+        public object Content { get; set; }
 
         public long ContentLength => Convert.ToInt64(this.GetHeaderValue(Constants.Headers.ContentLength));
 

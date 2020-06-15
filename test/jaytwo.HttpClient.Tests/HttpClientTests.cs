@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using jaytwo.HttpClient.Constants;
 using jaytwo.HttpClient.Exceptions;
 using jaytwo.MimeHelper;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace jaytwo.HttpClient.Tests
@@ -43,6 +45,63 @@ namespace jaytwo.HttpClient.Tests
             var expected = response.AsAnonymousType(prototype);
             Assert.Equal("bar", expected.headers["Foo"]); // don't ask me why, header keys get capitalized
             Assert.Equal("buzz", expected.headers["Fizz"]); // don't ask me why, header keys get capitalized
+        }
+
+        [Fact]
+        public async Task PreserveResponseAsHttpContent_preserves_httpcontent()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync(request =>
+            {
+                request.PreserveResponseAsHttpContent = true;
+
+                request
+                    .WithUri("/get")
+                    .WithQueryParameter("hello", "world");
+            });
+
+            // assert
+            var prototype = new
+            {
+                args = default(Dictionary<string, string>),
+            };
+
+            using (var content = response.AsHttpContent())
+            {
+                var asString = await content.ReadAsStringAsync();
+                var expected = JsonConvert.DeserializeAnonymousType(asString, prototype);
+                Assert.Equal("world", expected.args["hello"]);
+            }
+        }
+
+        [Fact]
+        public async Task PreserveResponseAsHttpContent_works_with_normal_extension_methods_too()
+        {
+            // arrange
+
+            // act
+            var response = await _httpClient.GetAsync(request =>
+            {
+                request.PreserveResponseAsHttpContent = true;
+
+                request
+                    .WithUri("/get")
+                    .WithQueryParameter("hello", "world");
+            });
+
+            // assert
+            var prototype = new
+            {
+                args = default(Dictionary<string, string>),
+            };
+
+            using (var content = response.AsHttpContent())
+            {
+                var expected = response.AsAnonymousType(prototype);
+                Assert.Equal("world", expected.args["hello"]);
+            }
         }
 
         [Fact]

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using jaytwo.AsyncHelper;
 using jaytwo.MimeHelper;
 
 namespace jaytwo.HttpClient
@@ -32,15 +33,46 @@ namespace jaytwo.HttpClient
 
         public static bool CouldBeJsonContent(HttpResponse httpResponse)
         {
-            return CouldBeJsonContent(httpResponse.Content) || CouldBeJsonContent(httpResponse.ContentBytes);
+            return CouldBeJsonContent(httpResponse.Content);
+        }
+
+        public static bool CouldBeJsonContent(object content)
+        {
+            if (content is string)
+            {
+                return CouldBeJsonContent((string)content);
+            }
+            else if (content is byte[])
+            {
+                return CouldBeJsonContent((byte[])content);
+            }
+            else if (content is HttpContent)
+            {
+                return CouldBeJsonContent((HttpContent)content);
+            }
+
+            return false;
+        }
+
+        public static bool CouldBeJsonContent(HttpContent content)
+        {
+            if (content != null)
+            {
+                content.LoadIntoBufferAsync().AwaitSynchronously();
+                var asString = content.ReadAsStringAsync().AwaitSynchronously();
+                return CouldBeJsonContent(asString);
+            }
+
+            return false;
         }
 
         public static bool CouldBeJsonContent(string content)
         {
             if (content != null)
             {
-                return (content.StartsWith("{") && content.EndsWith("}"))
-                    || (content.StartsWith("[") && content.EndsWith("]"));
+                var trimmed = content.Trim();
+                return (trimmed.StartsWith("{") && trimmed.EndsWith("}"))
+                    || (trimmed.StartsWith("[") && trimmed.EndsWith("]"));
             }
 
             return false;
@@ -78,14 +110,33 @@ namespace jaytwo.HttpClient
 
         public static bool CouldBeXmlContent(HttpResponse httpResponse)
         {
-            return CouldBeXmlContent(httpResponse.Content) || CouldBeXmlContent(httpResponse.ContentBytes);
+            return CouldBeXmlContent(httpResponse.Content);
+        }
+
+        public static bool CouldBeXmlContent(object content)
+        {
+            if (content is string)
+            {
+                return CouldBeXmlContent((string)content);
+            }
+            else if (content is byte[])
+            {
+                return CouldBeXmlContent((byte[])content);
+            }
+            else if (content is HttpContent)
+            {
+                return CouldBeXmlContent((HttpContent)content);
+            }
+
+            return false;
         }
 
         public static bool CouldBeXmlContent(string content)
         {
             if (content != null)
             {
-                return content.StartsWith("<") && content.EndsWith(">");
+                var trimmed = content.Trim();
+                return trimmed.StartsWith("<") && trimmed.EndsWith(">");
             }
 
             return false;
@@ -96,6 +147,18 @@ namespace jaytwo.HttpClient
             if (content != null)
             {
                 return content.First() == '<' && content.Last() == '>';
+            }
+
+            return false;
+        }
+
+        public static bool CouldBeXmlContent(HttpContent content)
+        {
+            if (content != null)
+            {
+                content.LoadIntoBufferAsync().AwaitSynchronously();
+                var asString = content.ReadAsStringAsync().AwaitSynchronously();
+                return CouldBeXmlContent(asString);
             }
 
             return false;

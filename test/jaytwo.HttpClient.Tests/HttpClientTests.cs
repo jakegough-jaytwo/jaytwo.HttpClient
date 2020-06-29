@@ -237,7 +237,8 @@ namespace jaytwo.HttpClient.Tests
             {
                 request
                     .WithBaseUri("http://httpbin.org")
-                    .WithPath("/get?hello=world");
+                    .WithPath("/get")
+                    .WithQuery("hello=world");
             });
 
             // assert
